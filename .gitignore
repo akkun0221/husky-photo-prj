@@ -43,3 +43,6 @@ next-env.d.ts
 # 機密情報ファイル
 API_KEY.md
 documents/API_KEY.md
+
+# Claude Code ローカル設定
+.claude/settings.local.json
