@@ -1,8 +1,8 @@
-import { createClient } from "@/shared/lib/supabase/server";
+import { createAdminClient } from "@/shared/lib/supabase/admin";
 import type { Live, CreateLiveInput, UpdateLiveInput } from "./types";
 
 export async function getLives(): Promise<Live[]> {
-  const supabase = await createClient();
+  const supabase = createAdminClient();
   const { data, error } = await supabase
     .from("lives")
     .select("*")
@@ -13,7 +13,7 @@ export async function getLives(): Promise<Live[]> {
 }
 
 export async function getLiveById(id: string): Promise<Live> {
-  const supabase = await createClient();
+  const supabase = createAdminClient();
   const { data, error } = await supabase
     .from("lives")
     .select("*")
@@ -25,7 +25,7 @@ export async function getLiveById(id: string): Promise<Live> {
 }
 
 export async function createLive(input: CreateLiveInput): Promise<Live> {
-  const supabase = await createClient();
+  const supabase = createAdminClient();
   const { data, error } = await supabase
     .from("lives")
     .insert(input)
@@ -37,7 +37,7 @@ export async function createLive(input: CreateLiveInput): Promise<Live> {
 }
 
 export async function updateLive(id: string, input: UpdateLiveInput): Promise<Live> {
-  const supabase = await createClient();
+  const supabase = createAdminClient();
   const { data, error } = await supabase
     .from("lives")
     .update(input)
@@ -50,7 +50,7 @@ export async function updateLive(id: string, input: UpdateLiveInput): Promise<Li
 }
 
 export async function deleteLive(id: string): Promise<void> {
-  const supabase = await createClient();
+  const supabase = createAdminClient();
   const { error } = await supabase.from("lives").delete().eq("id", id);
 
   if (error) throw new Error(error.message);

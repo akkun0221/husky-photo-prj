@@ -122,10 +122,10 @@ app → widgets → features → entities → shared
 
 ## セキュリティルール
 
-- Supabase / Cloudflare の APIキー・認証情報はサーバーサイドのみで使用する
-- フロントエンドのコードに認証情報を絶対に含めない
+- `SUPABASE_SERVICE_ROLE_KEY` などの秘密鍵はサーバーサイドのみで使用する
+- `NEXT_PUBLIC_SUPABASE_URL` / `NEXT_PUBLIC_SUPABASE_ANON_KEY` はクライアントサイドでの使用を許可（Supabase の設計上 ANON_KEY は公開前提。RLS でデータ保護する）
 - R2への書き込みはサーバーサイド（Route Handler）経由のみ許可
-- 環境変数の命名規則：SUPABASE* または CLOUDFLARE* を接頭語にする
+- 環境変数の命名規則：クライアントで使う変数は `NEXT_PUBLIC_SUPABASE_*` / `NEXT_PUBLIC_CLOUDFLARE_*`、サーバー専用は `SUPABASE_*` / `CLOUDFLARE_*`
 - .env.local は .gitignore に追加済みであること
 
 ---
@@ -188,6 +188,8 @@ MVPフェーズのテストは以下の2段階で行う。
 1. RDD.md を読み、実装対象の機能を確認する
 2. **実装計画を提示し、承認を待つ**
 3. 承認後に実装する
+   - **実装順序はFSDの依存方向に従い、小さい単位から順に行う**
+   - `shared` → `entities` → `features` → `widgets` → `app` の順
 4. `tsc --noEmit` と `next build` でエラーがないことを確認する
 5. 以下のフォーマットで報告する（手動確認手順を含める）
 
