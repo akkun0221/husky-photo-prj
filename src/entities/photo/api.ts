@@ -14,7 +14,7 @@ export async function getPhotosByLiveId(liveId: string): Promise<Photo[]> {
 
 export async function getPhotosByMemberId(
   memberId: string,
-  { limit, offset }: { limit: number; offset: number }
+  { limit, offset }: { limit: number; offset: number },
 ): Promise<Photo[]> {
   const supabase = await createClient();
   const { data, error } = await supabase

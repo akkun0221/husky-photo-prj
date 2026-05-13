@@ -58,12 +58,12 @@
 
 ページを実装する際は、RDD.md のレンダリング戦略に従い、`page.tsx` の先頭に必ず以下を明示すること。
 
-| 戦略 | 先頭に記述する内容 |
-| --- | --- |
-| SSR | `export const dynamic = "force-dynamic"` |
-| SSG | `export const dynamic = "force-static"` |
-| ISR / SSG + ISR | `export const revalidate = N`（N は秒数。値は実装時に相談する） |
-| CSR | page.tsx は Server Component のまま。Client Component 側に `"use client"` を記述する |
+| 戦略            | 先頭に記述する内容                                                                   |
+| --------------- | ------------------------------------------------------------------------------------ |
+| SSR             | `export const dynamic = "force-dynamic"`                                             |
+| SSG             | `export const dynamic = "force-static"`                                              |
+| ISR / SSG + ISR | `export const revalidate = N`（N は秒数。値は実装時に相談する）                      |
+| CSR             | page.tsx は Server Component のまま。Client Component 側に `"use client"` を記述する |
 
 特に SSR ページは**実装開始前に `force-dynamic` を先頭に書いてから**中身を実装すること（後から Supabase クライアント等を差し替えた際に意図せず Static に戻るのを防ぐため）。
 
@@ -184,10 +184,12 @@ photos テーブル
 MVPフェーズのテストは以下の2段階で行う。
 
 ### Claude側が行う確認（実装完了の定義）
+
 - `tsc --noEmit` でTypeScriptエラーがないこと
 - `next build` でビルドが通ること
 
 ### ユーザー側が行う確認（手動確認 + 管理画面実動確認）
+
 - Claude が実装完了後に**手動確認手順を提示する**
 - ユーザーがSupabaseへの実接続・データ取得をブラウザ/管理画面で確認する
 - 管理画面（/admin）実装後は、そこで実際にCRUD操作を行い動作確認する

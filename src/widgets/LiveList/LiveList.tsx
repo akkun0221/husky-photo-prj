@@ -38,7 +38,7 @@ export function LiveList({ initialLives }: Props) {
             <TableRow>
               <TableCell
                 colSpan={4}
-                className="text-center text-muted-foreground"
+                className="text-muted-foreground text-center"
               >
                 ライブ情報がありません
               </TableCell>

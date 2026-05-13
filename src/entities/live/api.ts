@@ -36,7 +36,10 @@ export async function createLive(input: CreateLiveInput): Promise<Live> {
   return data;
 }
 
-export async function updateLive(id: string, input: UpdateLiveInput): Promise<Live> {
+export async function updateLive(
+  id: string,
+  input: UpdateLiveInput,
+): Promise<Live> {
   const supabase = createAdminClient();
   const { data, error } = await supabase
     .from("lives")
