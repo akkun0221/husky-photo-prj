@@ -1,35 +1,26 @@
 "use client";
 
-import { useState, useEffect } from "react";
 import { useSearchParams } from "next/navigation";
+import { useQuery } from "@tanstack/react-query";
 import { PhotoGrid } from "@/widgets/PhotoGrid/PhotoGrid";
-import type { Photo } from "@/entities/photo/types";
-import type { Live } from "@/entities/live/types";
-
-type LiveGroup = { live: Live; photos: Photo[] };
+import type { PhotosGroupedByLive } from "@/entities/photo/api";
 
 export function MemberPhotoFeed() {
   const searchParams = useSearchParams();
   const memberId = searchParams.get("member");
 
-  const [groups, setGroups] = useState<LiveGroup[]>([]);
-  const [loading, setLoading] = useState(true);
+  const { data: groups = [], isLoading } = useQuery<PhotosGroupedByLive[]>({
+    queryKey: ["member-photo-feed", memberId],
+    queryFn: async () => {
+      const params = new URLSearchParams();
+      if (memberId) params.set("memberId", memberId);
+      const res = await fetch(`/api/members/photo-feed?${params.toString()}`);
+      if (!res.ok) throw new Error("写真の取得に失敗しました");
+      return res.json();
+    },
+  });
 
-  useEffect(() => {
-    // eslint-disable-next-line react-hooks/set-state-in-effect
-    setLoading(true);
-    const params = new URLSearchParams();
-    if (memberId) params.set("memberId", memberId);
-
-    fetch(`/api/members/photo-feed?${params.toString()}`)
-      .then((r) => r.json())
-      .then((data: LiveGroup[]) => {
-        setGroups(data);
-        setLoading(false);
-      });
-  }, [memberId]);
-
-  if (loading) {
+  if (isLoading) {
     return (
       <p className="py-8 text-center text-sm text-zinc-400">読み込み中...</p>
     );

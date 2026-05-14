@@ -7,3 +7,5 @@ export type Photo = {
 };
 
 export type CreatePhotoInput = Omit<Photo, "id">;
+
+export type PhotoWithLiveDate = Photo & { lives: { date: string } };

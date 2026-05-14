@@ -1,6 +1,6 @@
 import { createClient } from "@/shared/lib/supabase/server";
 import { createAdminClient } from "@/shared/lib/supabase/admin";
-import type { Photo, CreatePhotoInput } from "./types";
+import type { Photo, CreatePhotoInput, PhotoWithLiveDate } from "./types";
 import type { Live } from "@/entities/live/types";
 
 export type PhotosGroupedByLive = { live: Live; photos: Photo[] };
@@ -41,7 +41,7 @@ export async function getPhotosByLiveAndMember(
 export async function getPhotosByMemberId(
   memberId: string,
   { limit, offset }: { limit: number; offset: number },
-): Promise<Photo[]> {
+): Promise<PhotoWithLiveDate[]> {
   const supabase = createClient();
   const { data, error } = await supabase
     .from("photos")

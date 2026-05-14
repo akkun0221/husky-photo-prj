@@ -6,14 +6,12 @@ import type { CreateLiveInput, UpdateLiveInput } from "@/entities/live/types";
 
 export async function createLiveAction(input: CreateLiveInput) {
   await createLive(input);
-  revalidatePath("/admin");
   revalidatePath("/lives");
   revalidatePath("/");
 }
 
 export async function updateLiveAction(id: string, input: UpdateLiveInput) {
   await updateLive(id, input);
-  revalidatePath("/admin");
   revalidatePath("/lives");
   revalidatePath(`/lives/${id}`);
   revalidatePath("/");
@@ -21,7 +19,6 @@ export async function updateLiveAction(id: string, input: UpdateLiveInput) {
 
 export async function deleteLiveAction(id: string) {
   await deleteLive(id);
-  revalidatePath("/admin");
   revalidatePath("/lives");
   revalidatePath("/");
 }
