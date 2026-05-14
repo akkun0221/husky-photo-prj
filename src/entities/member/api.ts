@@ -1,8 +1,8 @@
-import { createAdminClient } from "@/shared/lib/supabase/admin";
+import { createClient } from "@/shared/lib/supabase/server";
 import type { Member } from "./types";
 
 export async function getMembers(): Promise<Member[]> {
-  const supabase = createAdminClient();
+  const supabase = createClient();
   const { data, error } = await supabase
     .from("members")
     .select("*")

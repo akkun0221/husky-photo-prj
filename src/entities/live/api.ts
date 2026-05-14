@@ -1,8 +1,9 @@
+import { createClient } from "@/shared/lib/supabase/server";
 import { createAdminClient } from "@/shared/lib/supabase/admin";
 import type { Live, CreateLiveInput, UpdateLiveInput } from "./types";
 
 export async function getLives(): Promise<Live[]> {
-  const supabase = createAdminClient();
+  const supabase = createClient();
   const { data, error } = await supabase
     .from("lives")
     .select("*")
@@ -13,7 +14,7 @@ export async function getLives(): Promise<Live[]> {
 }
 
 export async function getLiveById(id: string): Promise<Live> {
-  const supabase = createAdminClient();
+  const supabase = createClient();
   const { data, error } = await supabase
     .from("lives")
     .select("*")
