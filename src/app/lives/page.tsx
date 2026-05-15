@@ -1,6 +1,12 @@
 export const revalidate = false;
 
+import type { Metadata } from "next";
 import Link from "next/link";
+
+export const metadata: Metadata = {
+  title: "ライブ一覧",
+  description: "huskyのライブ一覧",
+};
 import { getLives } from "@/entities/live/api";
 import { Header } from "@/widgets/Header/Header";
 

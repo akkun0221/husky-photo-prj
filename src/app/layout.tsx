@@ -9,8 +9,18 @@ const geistSans = Geist({
 });
 
 export const metadata: Metadata = {
-  title: "husky photo",
+  title: {
+    default: "husky photo",
+    template: "%s | husky photo",
+  },
   description: "アイドルグループhuskyのフォトアルバム",
+  openGraph: {
+    title: "husky photo",
+    description: "アイドルグループhuskyのフォトアルバム",
+    siteName: "husky photo",
+    locale: "ja_JP",
+    type: "website",
+  },
 };
 
 export default function RootLayout({

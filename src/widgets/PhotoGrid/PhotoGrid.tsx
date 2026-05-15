@@ -147,7 +147,7 @@ export function PhotoGrid({ fetchMore }: Props) {
                 <img
                   key={photo.id}
                   src={photo.r2_url}
-                  alt=""
+                  alt="ライブ写真"
                   loading="lazy"
                   className="block cursor-pointer transition-opacity hover:opacity-90"
                   style={{

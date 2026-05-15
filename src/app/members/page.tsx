@@ -1,6 +1,12 @@
 export const dynamic = "force-static";
 
+import type { Metadata } from "next";
 import { Suspense } from "react";
+
+export const metadata: Metadata = {
+  title: "メンバー別",
+  description: "メンバー別のライブ写真一覧",
+};
 import { getMembers } from "@/entities/member/api";
 import { Header } from "@/widgets/Header/Header";
 import { MemberDropdown } from "@/features/filter-photos/MemberDropdown";

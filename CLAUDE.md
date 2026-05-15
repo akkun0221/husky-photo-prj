@@ -133,9 +133,12 @@ app → widgets → features → entities → shared
 
 ## セキュリティルール
 
-- `src/proxy.ts` の `export const runtime = "edge"` は**絶対に削除・変更しないこと**
-  - 理由：Cloudflare Workers は Node.js ミドルウェア非対応のため、Edge Runtime の宣言がないとデプロイが失敗する
-  - リファクタリング時も同様。ミドルウェアに Node.js 専用API（`fs`、`Buffer` 等）を追加してはならない
+- 認証ロジックは必ず `src/middleware.ts` に置くこと。**`proxy.ts` は使用禁止**
+  - Next.js 16 では `middleware.ts` が deprecated で `proxy.ts` が新標準だが、`proxy.ts` は Node.js ランタイム専用
+  - Cloudflare Workers（OpenNext）は Node.js ミドルウェア非対応のため、`proxy.ts` を使うとデプロイが失敗する
+  - `middleware.ts` は Edge Runtime で動作するため Cloudflare Workers 対応。`export const runtime` の記述は不要（かつ禁止）
+  - `middleware.ts` に Node.js 専用API（`fs`、`Buffer` 等）を追加してはならない
+  - ⚠️ Next.js のバージョンアップ時に `proxy.ts` への移行を促すメッセージが出ても絶対に移行しないこと
 - `SUPABASE_SERVICE_ROLE_KEY` などの秘密鍵はサーバーサイドのみで使用する
 - `NEXT_PUBLIC_SUPABASE_URL` / `NEXT_PUBLIC_SUPABASE_ANON_KEY` はクライアントサイドでの使用を許可（Supabase の設計上 ANON_KEY は公開前提。RLS でデータ保護する）
 - R2への書き込みはサーバーサイド（Route Handler）経由のみ許可

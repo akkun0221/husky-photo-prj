@@ -60,7 +60,7 @@ export function Lightbox({ photos, index, onClose, onPrev, onNext }: Props) {
 
       <img
         src={photo.r2_url}
-        alt=""
+        alt="ライブ写真"
         className="max-h-[90vh] max-w-[90vw] object-contain"
         onClick={(e) => e.stopPropagation()}
       />
