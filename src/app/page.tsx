@@ -2,6 +2,7 @@ export const revalidate = false;
 
 import { getLives } from "@/entities/live/api";
 import { Header } from "@/widgets/Header/Header";
+import { Footer } from "@/widgets/Footer/Footer";
 import { LiveCalendar } from "@/widgets/LiveCalendar/LiveCalendar";
 
 export default async function HomePage() {
@@ -39,6 +40,7 @@ export default async function HomePage() {
           <LiveCalendar lives={lives} />
         </section>
       </main>
+      <Footer />
     </>
   );
 }

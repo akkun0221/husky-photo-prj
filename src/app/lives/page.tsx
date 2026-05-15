@@ -9,6 +9,7 @@ export const metadata: Metadata = {
 };
 import { getLives } from "@/entities/live/api";
 import { Header } from "@/widgets/Header/Header";
+import { Footer } from "@/widgets/Footer/Footer";
 
 const ROW_COLORS = [
   { base: "bg-yellow-50", hover: "hover:bg-yellow-100" },
@@ -57,6 +58,7 @@ export default async function LivesPage() {
           </p>
         )}
       </main>
+      <Footer />
     </>
   );
 }

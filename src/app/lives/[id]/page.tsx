@@ -4,6 +4,7 @@ import { getLiveById } from "@/entities/live/api";
 import { getMembers } from "@/entities/member/api";
 import { createAdminClient } from "@/shared/lib/supabase/admin";
 import { Header } from "@/widgets/Header/Header";
+import { Footer } from "@/widgets/Footer/Footer";
 import { MemberSelect } from "@/features/filter-photos/MemberSelect";
 import { LiveDetailPhotoFeed } from "@/widgets/LiveDetailPhotoFeed/LiveDetailPhotoFeed";
 
@@ -83,6 +84,7 @@ export default async function LiveDetailPage({ params }: Props) {
           </Suspense>
         </div>
       </main>
+      <Footer />
     </>
   );
 }

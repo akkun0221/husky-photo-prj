@@ -9,6 +9,7 @@ export const metadata: Metadata = {
 };
 import { getMembers } from "@/entities/member/api";
 import { Header } from "@/widgets/Header/Header";
+import { Footer } from "@/widgets/Footer/Footer";
 import { MemberDropdown } from "@/features/filter-photos/MemberDropdown";
 import { MemberPhotoFeed } from "@/widgets/MemberPhotoFeed/MemberPhotoFeed";
 
@@ -39,6 +40,7 @@ export default async function MembersPage() {
           </Suspense>
         </div>
       </main>
+      <Footer />
     </>
   );
 }
