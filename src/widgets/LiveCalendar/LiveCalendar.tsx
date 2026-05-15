@@ -83,14 +83,14 @@ export function LiveCalendar({ lives }: Props) {
           ))}
         </div>
 
-        <div className="grid grid-cols-7">
+        <div className="grid h-[360px] grid-cols-7 grid-rows-6">
           {cells.map((day, i) => {
             if (day === null) return <div key={`empty-${i}`} />;
             const dateKey = `${year}-${String(month + 1).padStart(2, "0")}-${String(day).padStart(2, "0")}`;
             const dayLives = livesByDate[dateKey] ?? [];
 
             return (
-              <div key={dateKey} className="min-h-[60px] border-t p-1">
+              <div key={dateKey} className="overflow-hidden border-t p-1">
                 <span className="block text-xs text-zinc-500">{day}</span>
                 <div className="mt-0.5 flex flex-col gap-0.5">
                   {dayLives.map((live) =>
