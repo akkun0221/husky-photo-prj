@@ -275,7 +275,13 @@ export function UploadPhoto({ lives, members }: Props) {
           {files.map((f) => (
             <div key={f.id} className="relative space-y-1.5">
               {/* サムネイル */}
-              <div className="bg-muted relative aspect-square overflow-hidden rounded-md">
+              <div
+                className={`bg-muted relative aspect-square overflow-hidden rounded-md ${
+                  f.status === "pending" && !f.memberId
+                    ? "ring-2 ring-red-400"
+                    : ""
+                }`}
+              >
                 {/* eslint-disable-next-line @next/next/no-img-element */}
                 <img
                   src={f.preview}
