@@ -11,7 +11,7 @@ import {
 } from "@/shared/ui/select";
 import type { Live } from "@/entities/live/types";
 import type { Member } from "@/entities/member/types";
-import { compressImage, generateThumbnail } from "./compressImage";
+import { processImage } from "./compressImage";
 import { createPhotoAction } from "./actions";
 
 type UploadFile = {
@@ -128,27 +128,25 @@ export function UploadPhoto({ lives, members }: Props) {
     setMemberError(false);
     setIsUploading(true);
 
-    for (const uploadFile of files) {
-      if (uploadFile.status !== "pending") continue;
+    // 案③: 3枚ずつ並列処理
+    const CONCURRENCY = 3;
+    const pending = files.filter((f) => f.status === "pending");
 
+    const processOne = async (uploadFile: (typeof pending)[number]) => {
       setFiles((prev) =>
         prev.map((f) =>
           f.id === uploadFile.id ? { ...f, status: "uploading" } : f,
         ),
       );
-
       try {
-        const base = `${Date.now()}-${uploadFile.id}`;
-        const [{ blob, width, height }, thumbnailBlob] = await Promise.all([
-          compressImage(uploadFile.file),
-          generateThumbnail(uploadFile.file),
-        ]);
-
+        const base = `${uploadFile.id}`;
+        const { blob, thumbnailBlob, width, height } = await processImage(
+          uploadFile.file,
+        );
         const [r2_url, thumbnail_url] = await Promise.all([
           uploadToR2(blob, `lives/${liveId}/${base}.webp`),
           uploadToR2(thumbnailBlob, `thumbnails/${liveId}/${base}.webp`),
         ]);
-
         await createPhotoAction({
           live_id: liveId,
           member_id: uploadFile.memberId,
@@ -157,7 +155,6 @@ export function UploadPhoto({ lives, members }: Props) {
           width,
           height,
         });
-
         setFiles((prev) =>
           prev.map((f) =>
             f.id === uploadFile.id ? { ...f, status: "done" } : f,
@@ -177,6 +174,10 @@ export function UploadPhoto({ lives, members }: Props) {
           ),
         );
       }
+    };
+
+    for (let i = 0; i < pending.length; i += CONCURRENCY) {
+      await Promise.all(pending.slice(i, i + CONCURRENCY).map(processOne));
     }
 
     setIsUploading(false);
