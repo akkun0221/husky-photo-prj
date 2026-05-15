@@ -9,6 +9,13 @@ import {
   SelectItem,
   SelectTrigger,
 } from "@/shared/ui/select";
+import {
+  Dialog,
+  DialogContent,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/shared/ui/dialog";
 import type { Live } from "@/entities/live/types";
 import type { Member } from "@/entities/member/types";
 import { processImage } from "./compressImage";
@@ -34,7 +41,7 @@ export function UploadPhoto({ lives, members }: Props) {
   const [files, setFiles] = useState<UploadFile[]>([]);
   const [isDragging, setIsDragging] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
-  const [memberError, setMemberError] = useState(false);
+  const [showConfirmModal, setShowConfirmModal] = useState(false);
   const [bulkMemberId, setBulkMemberId] = useState("");
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -117,15 +124,6 @@ export function UploadPhoto({ lives, members }: Props) {
 
   const handleUpload = async () => {
     if (!liveId || files.length === 0) return;
-
-    const unassigned = files.filter(
-      (f) => f.status === "pending" && !f.memberId,
-    );
-    if (unassigned.length > 0) {
-      setMemberError(true);
-      return;
-    }
-    setMemberError(false);
     setIsUploading(true);
 
     // 案③: 3枚ずつ並列処理
@@ -377,13 +375,6 @@ export function UploadPhoto({ lives, members }: Props) {
         </div>
       )}
 
-      {/* メンバー未設定エラー */}
-      {memberError && (
-        <p className="text-sm text-red-500">
-          メンバーが設定されていない画像があります。全ての画像にメンバーを設定してください。
-        </p>
-      )}
-
       {/* フッター：進捗 + アップロードボタン */}
       {files.length > 0 && (
         <div className="flex items-center justify-between">
@@ -396,11 +387,55 @@ export function UploadPhoto({ lives, members }: Props) {
             )}
             {pendingCount > 0 && <span>{pendingCount} 件未処理</span>}
           </p>
-          <Button onClick={handleUpload} disabled={!canUpload}>
+          <Button
+            onClick={() => setShowConfirmModal(true)}
+            disabled={!canUpload}
+          >
             {isUploading ? "アップロード中..." : "アップロード開始"}
           </Button>
         </div>
       )}
+
+      {/* 確認モーダル */}
+      <Dialog open={showConfirmModal} onOpenChange={setShowConfirmModal}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>この情報で登録してよろしいですか？</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-1 text-sm">
+            <p>
+              <span className="text-muted-foreground">日付：</span>
+              {selectedLive?.date}
+            </p>
+            <p>
+              <span className="text-muted-foreground">ライブ名：</span>
+              {selectedLive?.title}
+            </p>
+            <p>
+              <span className="text-muted-foreground">ライブ会場：</span>
+              {selectedLive?.venue}
+            </p>
+            {files.some((f) => f.status === "pending" && !f.memberId) && (
+              <p className="pt-1 text-red-500">
+                メンバーが設定されていない画像があります。全ての画像にメンバーを設定してください。
+              </p>
+            )}
+          </div>
+          <DialogFooter>
+            <Button
+              disabled={files.some(
+                (f) => f.status === "pending" && !f.memberId,
+              )}
+              onClick={() => {
+                setShowConfirmModal(false);
+                handleUpload();
+              }}
+            >
+              はい
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
