@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useCallback, useEffect, useRef, useMemo } from "react";
+import { useWindowVirtualizer } from "@tanstack/react-virtual";
 import { useIntersectionObserver } from "@/shared/hooks/useIntersectionObserver";
 import { Lightbox } from "@/shared/ui/lightbox";
 import { usePhotoListStore } from "@/entities/photo/PhotoListContext";
@@ -77,7 +78,9 @@ export function PhotoGrid({ fetchMore }: Props) {
     }
     return map;
   }, [photos, loadedRatios]);
+
   const [containerWidth, setContainerWidth] = useState(0);
+  const [scrollMargin, setScrollMargin] = useState(0);
   const [targetHeight, setTargetHeight] = useState(TARGET_ROW_HEIGHT_DESKTOP);
   const [lightboxIndex, setLightboxIndex] = useState<number | null>(null);
   const containerRef = useRef<HTMLDivElement>(null);
@@ -86,6 +89,7 @@ export function PhotoGrid({ fetchMore }: Props) {
     const el = containerRef.current;
     if (!el) return;
     setContainerWidth(el.clientWidth);
+    setScrollMargin(el.offsetTop);
     const ro = new ResizeObserver((entries) => {
       setContainerWidth(entries[0]?.contentRect.width ?? 0);
     });
@@ -151,40 +155,64 @@ export function PhotoGrid({ fetchMore }: Props) {
     [photos],
   );
 
+  const virtualizer = useWindowVirtualizer({
+    count: rows.length,
+    // 行の高さ + GAP 分を見積もることで行間スペースを確保
+    estimateSize: (i) => (rows[i]?.height ?? TARGET_ROW_HEIGHT_DESKTOP) + GAP,
+    overscan: 3,
+    scrollMargin,
+  });
+
   return (
     <div ref={containerRef}>
-      <div className="space-y-1">
-        {rows.map((row) => (
-          <div key={row.photos[0]?.id} className="flex gap-1">
-            {row.photos.map((photo) => {
-              const ar = ratios.get(photo.id) ?? 4 / 3;
-              return (
-                <img
-                  key={photo.id}
-                  src={photo.thumbnail_url}
-                  alt="ライブ写真"
-                  loading="lazy"
-                  className="block cursor-pointer transition-opacity hover:opacity-90"
-                  style={{
-                    width: ar * row.height,
-                    height: row.height,
-                    flexShrink: 0,
-                  }}
-                  onClick={() =>
-                    setLightboxIndex(photoIndexMap.get(photo.id) ?? 0)
-                  }
-                  onLoad={(e) =>
-                    handleLoad(
-                      photo.id,
-                      e.currentTarget.naturalWidth,
-                      e.currentTarget.naturalHeight,
-                    )
-                  }
-                />
-              );
-            })}
-          </div>
-        ))}
+      {/* 仮想スクロール：全行の合計高さを確保しつつ表示行のみDOMに置く */}
+      <div style={{ height: virtualizer.getTotalSize(), position: "relative" }}>
+        {virtualizer.getVirtualItems().map((virtualRow) => {
+          const row = rows[virtualRow.index];
+          if (!row) return null;
+          return (
+            <div
+              key={virtualRow.key}
+              style={{
+                position: "absolute",
+                top: 0,
+                left: 0,
+                width: "100%",
+                transform: `translateY(${virtualRow.start - virtualizer.options.scrollMargin}px)`,
+              }}
+            >
+              <div className="flex gap-1" style={{ height: row.height }}>
+                {row.photos.map((photo) => {
+                  const ar = ratios.get(photo.id) ?? 4 / 3;
+                  return (
+                    <img
+                      key={photo.id}
+                      src={photo.thumbnail_url}
+                      alt="ライブ写真"
+                      loading="lazy"
+                      className="block cursor-pointer transition-opacity hover:opacity-90"
+                      style={{
+                        width: ar * row.height,
+                        height: row.height,
+                        flexShrink: 0,
+                      }}
+                      onClick={() =>
+                        setLightboxIndex(photoIndexMap.get(photo.id) ?? 0)
+                      }
+                      onLoad={(e) =>
+                        handleLoad(
+                          photo.id,
+                          e.currentTarget.naturalWidth,
+                          e.currentTarget.naturalHeight,
+                        )
+                      }
+                    />
+                  );
+                })}
+              </div>
+            </div>
+          );
+        })}
       </div>
 
       {hasMore && (
