@@ -34,6 +34,7 @@ export function UploadPhoto({ lives, members }: Props) {
   const [files, setFiles] = useState<UploadFile[]>([]);
   const [isDragging, setIsDragging] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
+  const [memberError, setMemberError] = useState(false);
   const [bulkMemberId, setBulkMemberId] = useState("");
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -71,6 +72,7 @@ export function UploadPhoto({ lives, members }: Props) {
   };
 
   const updateMemberId = (fileId: string, memberId: string) => {
+    setMemberError(false);
     setFiles((prev) =>
       prev.map((f) => (f.id === fileId ? { ...f, memberId } : f)),
     );
@@ -84,6 +86,7 @@ export function UploadPhoto({ lives, members }: Props) {
 
   const applyBulkMember = () => {
     if (!bulkMemberId) return;
+    setMemberError(false);
     setFiles((prev) =>
       prev.map((f) =>
         f.checked && f.status === "pending"
@@ -116,6 +119,15 @@ export function UploadPhoto({ lives, members }: Props) {
 
   const handleUpload = async () => {
     if (!liveId || files.length === 0) return;
+
+    const unassigned = files.filter(
+      (f) => f.status === "pending" && !f.memberId,
+    );
+    if (unassigned.length > 0) {
+      setMemberError(true);
+      return;
+    }
+    setMemberError(false);
     setIsUploading(true);
 
     for (const uploadFile of files) {
@@ -364,6 +376,13 @@ export function UploadPhoto({ lives, members }: Props) {
             </div>
           ))}
         </div>
+      )}
+
+      {/* メンバー未設定エラー */}
+      {memberError && (
+        <p className="text-sm text-red-500">
+          メンバーが設定されていない画像があります。全ての画像にメンバーを設定してください。
+        </p>
       )}
 
       {/* フッター：進捗 + アップロードボタン */}
