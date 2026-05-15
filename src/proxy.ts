@@ -1,6 +1,9 @@
 import { createServerClient } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
 
+// Cloudflare Workers は Node.js ミドルウェア非対応のため Edge Runtime 必須。絶対に変更しないこと。
+export const runtime = "edge";
+
 export async function proxy(request: NextRequest) {
   let supabaseResponse = NextResponse.next({ request });
 

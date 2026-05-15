@@ -133,6 +133,9 @@ app → widgets → features → entities → shared
 
 ## セキュリティルール
 
+- `src/proxy.ts` の `export const runtime = "edge"` は**絶対に削除・変更しないこと**
+  - 理由：Cloudflare Workers は Node.js ミドルウェア非対応のため、Edge Runtime の宣言がないとデプロイが失敗する
+  - リファクタリング時も同様。ミドルウェアに Node.js 専用API（`fs`、`Buffer` 等）を追加してはならない
 - `SUPABASE_SERVICE_ROLE_KEY` などの秘密鍵はサーバーサイドのみで使用する
 - `NEXT_PUBLIC_SUPABASE_URL` / `NEXT_PUBLIC_SUPABASE_ANON_KEY` はクライアントサイドでの使用を許可（Supabase の設計上 ANON_KEY は公開前提。RLS でデータ保護する）
 - R2への書き込みはサーバーサイド（Route Handler）経由のみ許可
