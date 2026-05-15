@@ -25,7 +25,10 @@ export async function putR2Object(
   const res = await r2.fetch(url, {
     method: "PUT",
     body,
-    headers: { "Content-Type": contentType },
+    headers: {
+      "Content-Type": contentType,
+      "Content-Length": String(body.byteLength),
+    },
   });
   if (!res.ok) {
     throw new Error(`R2 put failed: ${res.status} ${res.statusText}`);
