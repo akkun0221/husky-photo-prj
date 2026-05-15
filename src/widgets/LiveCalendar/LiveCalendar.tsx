@@ -4,10 +4,10 @@ import { useState } from "react";
 import Link from "next/link";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import { Button } from "@/shared/ui/button";
-import type { Live } from "@/entities/live/types";
+import type { LiveWithPhotoFlag } from "@/entities/live/types";
 
 type Props = {
-  lives: Live[];
+  lives: LiveWithPhotoFlag[];
 };
 
 function getDaysInMonth(year: number, month: number) {
@@ -23,12 +23,15 @@ export function LiveCalendar({ lives }: Props) {
   const [year, setYear] = useState(today.getFullYear());
   const [month, setMonth] = useState(today.getMonth());
 
-  const livesByDate = lives.reduce<Record<string, Live[]>>((acc, live) => {
-    const dateKey = live.date.slice(0, 10);
-    if (!acc[dateKey]) acc[dateKey] = [];
-    acc[dateKey].push(live);
-    return acc;
-  }, {});
+  const livesByDate = lives.reduce<Record<string, LiveWithPhotoFlag[]>>(
+    (acc, live) => {
+      const dateKey = live.date.slice(0, 10);
+      if (!acc[dateKey]) acc[dateKey] = [];
+      acc[dateKey].push(live);
+      return acc;
+    },
+    {},
+  );
 
   const daysInMonth = getDaysInMonth(year, month);
   const firstDay = getFirstDayOfMonth(year, month);
@@ -83,16 +86,26 @@ export function LiveCalendar({ lives }: Props) {
             <div key={dateKey} className="min-h-[60px] border-t p-1">
               <span className="block text-xs text-zinc-500">{day}</span>
               <div className="mt-0.5 flex flex-col gap-0.5">
-                {dayLives.map((live) => (
-                  <Link
-                    key={live.id}
-                    href={`/lives/${live.id}`}
-                    className="truncate rounded bg-zinc-800 px-1 py-0.5 text-[10px] text-white hover:bg-zinc-600"
-                    title={live.venue}
-                  >
-                    {live.venue}
-                  </Link>
-                ))}
+                {dayLives.map((live) =>
+                  live.hasPhotos ? (
+                    <Link
+                      key={live.id}
+                      href={`/lives/${live.id}`}
+                      className="truncate rounded bg-amber-300 px-1 py-0.5 text-[10px] text-amber-900 hover:bg-amber-400"
+                      title={live.venue}
+                    >
+                      {live.venue}
+                    </Link>
+                  ) : (
+                    <span
+                      key={live.id}
+                      className="cursor-not-allowed truncate rounded bg-zinc-200 px-1 py-0.5 text-[10px] text-zinc-400"
+                      title={live.venue}
+                    >
+                      {live.venue}
+                    </span>
+                  ),
+                )}
               </div>
             </div>
           );

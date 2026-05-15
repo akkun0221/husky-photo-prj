@@ -69,15 +69,17 @@ export function LiveList({ initialLives }: Props) {
                 <TableCell className="overflow-hidden">{live.venue}</TableCell>
                 <TableCell className="overflow-hidden">{live.title}</TableCell>
                 <TableCell className="space-x-2 text-right">
-                  <Link
-                    href={`/admin/lives/${live.id}/photos`}
-                    className={buttonVariants({
-                      variant: "outline",
-                      size: "sm",
-                    })}
-                  >
-                    写真
-                  </Link>
+                  {live.hasPhotos && (
+                    <Link
+                      href={`/admin/lives/${live.id}/photos`}
+                      className={buttonVariants({
+                        variant: "outline",
+                        size: "sm",
+                      })}
+                    >
+                      写真
+                    </Link>
+                  )}
                   <LiveFormDialog
                     live={live}
                     trigger={

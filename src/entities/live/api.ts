@@ -19,6 +19,28 @@ export async function getLives(): Promise<Live[]> {
   return data;
 }
 
+export async function getLivesWithPhotoFlag(): Promise<LiveWithPhotoFlag[]> {
+  const supabase = createClient();
+  const [
+    { data: lives, error: livesError },
+    { data: photos, error: photosError },
+  ] = await Promise.all([
+    supabase
+      .from("lives")
+      .select("*")
+      .is("deleted_at", null)
+      .order("date", { ascending: false }),
+    supabase.from("photos").select("live_id"),
+  ]);
+  if (livesError) throw new Error(livesError.message);
+  if (photosError) throw new Error(photosError.message);
+  const liveIdsWithPhotos = new Set(photos?.map((p) => p.live_id) ?? []);
+  return (lives ?? []).map((live) => ({
+    ...live,
+    hasPhotos: liveIdsWithPhotos.has(live.id),
+  }));
+}
+
 export async function getLivesAdmin(): Promise<LiveWithPhotoFlag[]> {
   const supabase = createAdminClient();
   const [
