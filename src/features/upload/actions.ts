@@ -11,4 +11,6 @@ export async function createPhotoAction(
   const { error } = await supabase.from("photos").insert(input);
   if (error) throw new Error(error.message);
   revalidatePath(`/lives/${input.live_id}`);
+  revalidatePath("/lives");
+  revalidatePath("/");
 }
