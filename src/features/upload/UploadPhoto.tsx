@@ -21,6 +21,7 @@ type UploadFile = {
   memberId: string;
   status: "pending" | "uploading" | "done" | "error";
   errorMessage?: string;
+  checked: boolean;
 };
 
 type Props = {
@@ -33,6 +34,7 @@ export function UploadPhoto({ lives, members }: Props) {
   const [files, setFiles] = useState<UploadFile[]>([]);
   const [isDragging, setIsDragging] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
+  const [bulkMemberId, setBulkMemberId] = useState("");
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const selectedLive = lives.find((l) => l.id === liveId);
@@ -45,6 +47,7 @@ export function UploadPhoto({ lives, members }: Props) {
       preview: URL.createObjectURL(f),
       memberId: "",
       status: "pending",
+      checked: false,
     }));
     setFiles((prev) => [...prev, ...uploadFiles]);
   }, []);
@@ -70,6 +73,23 @@ export function UploadPhoto({ lives, members }: Props) {
   const updateMemberId = (fileId: string, memberId: string) => {
     setFiles((prev) =>
       prev.map((f) => (f.id === fileId ? { ...f, memberId } : f)),
+    );
+  };
+
+  const toggleCheck = (fileId: string) => {
+    setFiles((prev) =>
+      prev.map((f) => (f.id === fileId ? { ...f, checked: !f.checked } : f)),
+    );
+  };
+
+  const applyBulkMember = () => {
+    if (!bulkMemberId) return;
+    setFiles((prev) =>
+      prev.map((f) =>
+        f.checked && f.status === "pending"
+          ? { ...f, memberId: bulkMemberId, checked: false }
+          : f,
+      ),
     );
   };
 
@@ -203,6 +223,45 @@ export function UploadPhoto({ lives, members }: Props) {
         </p>
       </div>
 
+      {/* 一括メンバー設定 */}
+      {files.some((f) => f.status === "pending") && (
+        <div className="flex items-center gap-2">
+          <span className="text-muted-foreground text-sm">一括設定:</span>
+          <Select
+            value={bulkMemberId}
+            onValueChange={(v) => setBulkMemberId(v ?? "")}
+          >
+            <SelectTrigger size="sm" className="w-36">
+              <span
+                className={`flex flex-1 text-left text-xs ${!bulkMemberId ? "text-muted-foreground" : ""}`}
+              >
+                {bulkMemberId
+                  ? members.find((m) => m.id === bulkMemberId)?.name
+                  : "メンバーを選択"}
+              </span>
+            </SelectTrigger>
+            <SelectContent>
+              {members.map((m) => (
+                <SelectItem key={m.id} value={m.id}>
+                  {m.name}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={applyBulkMember}
+            disabled={
+              !bulkMemberId ||
+              !files.some((f) => f.checked && f.status === "pending")
+            }
+          >
+            チェック済みに適用
+          </Button>
+        </div>
+      )}
+
       {/* 写真プレビューグリッド */}
       {files.length > 0 && (
         <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5">
@@ -234,7 +293,17 @@ export function UploadPhoto({ lives, members }: Props) {
                     </span>
                   </div>
                 )}
-                {/* 削除ボタン */}
+                {/* チェックボックス（左上） */}
+                {f.status === "pending" && (
+                  <input
+                    type="checkbox"
+                    checked={f.checked}
+                    onChange={() => toggleCheck(f.id)}
+                    onClick={(e) => e.stopPropagation()}
+                    className="absolute top-1 left-1 h-4 w-4 cursor-pointer"
+                  />
+                )}
+                {/* 削除ボタン（右上） */}
                 {f.status === "pending" && (
                   <button
                     type="button"
