@@ -61,7 +61,22 @@ export function PhotoGrid({ fetchMore }: Props) {
   const setLoading = usePhotoListStore((s) => s.setLoading);
   const setHasMore = usePhotoListStore((s) => s.setHasMore);
 
-  const [ratios, setRatios] = useState<Map<string, number>>(new Map());
+  // onLoad で取得した実測アスペクト比
+  const [loadedRatios, setLoadedRatios] = useState<Map<string, number>>(
+    new Map(),
+  );
+
+  // DBのwidth/heightを優先し、onLoadの実測値で上書き
+  const ratios = useMemo(() => {
+    const map = new Map<string, number>();
+    for (const p of photos) {
+      if (p.width && p.height) map.set(p.id, p.width / p.height);
+    }
+    for (const [id, ar] of loadedRatios) {
+      map.set(id, ar);
+    }
+    return map;
+  }, [photos, loadedRatios]);
   const [containerWidth, setContainerWidth] = useState(0);
   const [targetHeight, setTargetHeight] = useState(TARGET_ROW_HEIGHT_DESKTOP);
   const [lightboxIndex, setLightboxIndex] = useState<number | null>(null);
@@ -93,7 +108,7 @@ export function PhotoGrid({ fetchMore }: Props) {
 
   const handleLoad = useCallback((id: string, w: number, h: number) => {
     if (!w || !h) return;
-    setRatios((prev) => {
+    setLoadedRatios((prev) => {
       const ar = w / h;
       if (prev.get(id) === ar) return prev;
       const next = new Map(prev);
@@ -146,7 +161,7 @@ export function PhotoGrid({ fetchMore }: Props) {
               return (
                 <img
                   key={photo.id}
-                  src={photo.r2_url}
+                  src={photo.thumbnail_url}
                   alt="ライブ写真"
                   loading="lazy"
                   className="block cursor-pointer transition-opacity hover:opacity-90"

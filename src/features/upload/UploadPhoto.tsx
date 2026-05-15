@@ -11,7 +11,7 @@ import {
 } from "@/shared/ui/select";
 import type { Live } from "@/entities/live/types";
 import type { Member } from "@/entities/member/types";
-import { compressImage } from "./compressImage";
+import { compressImage, generateThumbnail } from "./compressImage";
 import { createPhotoAction } from "./actions";
 
 type UploadFile = {
@@ -101,6 +101,19 @@ export function UploadPhoto({ lives, members }: Props) {
     });
   };
 
+  async function uploadToR2(blob: Blob, key: string): Promise<string> {
+    const formData = new FormData();
+    formData.append("file", blob);
+    formData.append("key", key);
+    const res = await fetch("/api/upload", { method: "POST", body: formData });
+    if (!res.ok) {
+      const body = await res.json().catch(() => ({}));
+      throw new Error((body as { error?: string }).error ?? "アップロード失敗");
+    }
+    const { url } = (await res.json()) as { url: string };
+    return url;
+  }
+
   const handleUpload = async () => {
     if (!liveId || files.length === 0) return;
     setIsUploading(true);
@@ -115,30 +128,24 @@ export function UploadPhoto({ lives, members }: Props) {
       );
 
       try {
-        const blob = await compressImage(uploadFile.file);
+        const base = `${Date.now()}-${uploadFile.id}`;
+        const [{ blob, width, height }, thumbnailBlob] = await Promise.all([
+          compressImage(uploadFile.file),
+          generateThumbnail(uploadFile.file),
+        ]);
 
-        const key = `lives/${liveId}/${Date.now()}-${uploadFile.id}.webp`;
-        const formData = new FormData();
-        formData.append("file", blob);
-        formData.append("key", key);
-
-        const res = await fetch("/api/upload", {
-          method: "POST",
-          body: formData,
-        });
-        if (!res.ok) {
-          const body = await res.json().catch(() => ({}));
-          throw new Error(
-            (body as { error?: string }).error ?? "アップロード失敗",
-          );
-        }
-        const { url } = (await res.json()) as { url: string };
+        const [r2_url, thumbnail_url] = await Promise.all([
+          uploadToR2(blob, `lives/${liveId}/${base}.webp`),
+          uploadToR2(thumbnailBlob, `thumbnails/${liveId}/${base}.webp`),
+        ]);
 
         await createPhotoAction({
           live_id: liveId,
           member_id: uploadFile.memberId,
-          r2_url: url,
-          thumbnail_url: url,
+          r2_url,
+          thumbnail_url,
+          width,
+          height,
         });
 
         setFiles((prev) =>

@@ -1,4 +1,5 @@
 const MAX_SIDE = 2000;
+const THUMBNAIL_MAX_SIDE = 400;
 const TARGET_MIN_BYTES = 500 * 1024;
 const TARGET_MAX_BYTES = 800 * 1024;
 
@@ -12,7 +13,13 @@ function toBlob(canvas: HTMLCanvasElement, quality: number): Promise<Blob> {
   });
 }
 
-export async function compressImage(file: File): Promise<Blob> {
+export type CompressResult = {
+  blob: Blob;
+  width: number;
+  height: number;
+};
+
+export async function compressImage(file: File): Promise<CompressResult> {
   const bitmap = await createImageBitmap(file);
 
   let { width, height } = bitmap;
@@ -43,5 +50,24 @@ export async function compressImage(file: File): Promise<Blob> {
     else lo = mid;
   }
 
-  return result;
+  return { blob: result, width, height };
+}
+
+export async function generateThumbnail(file: File): Promise<Blob> {
+  const bitmap = await createImageBitmap(file);
+
+  let { width, height } = bitmap;
+  if (Math.max(width, height) > THUMBNAIL_MAX_SIDE) {
+    const scale = THUMBNAIL_MAX_SIDE / Math.max(width, height);
+    width = Math.round(width * scale);
+    height = Math.round(height * scale);
+  }
+
+  const canvas = document.createElement("canvas");
+  canvas.width = width;
+  canvas.height = height;
+  canvas.getContext("2d")!.drawImage(bitmap, 0, 0, width, height);
+  bitmap.close();
+
+  return toBlob(canvas, 0.85);
 }
