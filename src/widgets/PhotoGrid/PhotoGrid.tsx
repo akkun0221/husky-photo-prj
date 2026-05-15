@@ -104,8 +104,9 @@ export function PhotoGrid({ fetchMore }: Props) {
     containerRo.observe(el);
 
     // 他セクションのコンテンツロードでページ高さが変わったときにscrollMarginを再計算
+    // document.documentElement はビューポートサイズのみ監視のため body を使う
     const docRo = new ResizeObserver(updateScrollMargin);
-    docRo.observe(document.documentElement);
+    docRo.observe(document.body);
 
     return () => {
       containerRo.disconnect();
