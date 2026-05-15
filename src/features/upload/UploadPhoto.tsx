@@ -72,7 +72,6 @@ export function UploadPhoto({ lives, members }: Props) {
   };
 
   const updateMemberId = (fileId: string, memberId: string) => {
-    setMemberError(false);
     setFiles((prev) =>
       prev.map((f) => (f.id === fileId ? { ...f, memberId } : f)),
     );
@@ -86,7 +85,6 @@ export function UploadPhoto({ lives, members }: Props) {
 
   const applyBulkMember = () => {
     if (!bulkMemberId) return;
-    setMemberError(false);
     setFiles((prev) =>
       prev.map((f) =>
         f.checked && f.status === "pending"
