@@ -42,19 +42,29 @@ export function MemberDropdown({ members }: Props) {
     <DropdownMenu>
       <DropdownMenuTrigger
         render={
-          <Button variant="outline" className="gap-2">
+          <Button
+            variant="outline"
+            className="h-11 gap-2 px-4 text-base md:h-8 md:px-2.5 md:text-sm"
+          >
             <SlidersHorizontal className="h-4 w-4" />
             {currentLabel}
           </Button>
         }
       />
       <DropdownMenuContent align="end">
-        <DropdownMenuItem onClick={() => handleSelect(ALL_VALUE)}>
+        <DropdownMenuItem
+          className="px-3 py-3 text-base md:px-1.5 md:py-1 md:text-sm"
+          onClick={() => handleSelect(ALL_VALUE)}
+        >
           <span className="flex-1">全て</span>
           {current === ALL_VALUE && <Check className="h-4 w-4" />}
         </DropdownMenuItem>
         {members.map((m) => (
-          <DropdownMenuItem key={m.id} onClick={() => handleSelect(m.id)}>
+          <DropdownMenuItem
+            key={m.id}
+            className="px-3 py-3 text-base md:px-1.5 md:py-1 md:text-sm"
+            onClick={() => handleSelect(m.id)}
+          >
             <span className="flex-1">{m.name}</span>
             {current === m.id && <Check className="h-4 w-4" />}
           </DropdownMenuItem>

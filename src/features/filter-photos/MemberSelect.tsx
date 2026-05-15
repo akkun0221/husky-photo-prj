@@ -96,9 +96,9 @@ export function MemberSelect({ members, allMember }: Props) {
         <button
           type="button"
           onClick={() => setOpen((v) => !v)}
-          className="flex items-center gap-1.5 text-sm"
+          className="flex items-center gap-2 px-1 py-2 text-base"
         >
-          <span className="text-base leading-none">≡</span>
+          <span className="text-xl leading-none">≡</span>
           <span>{currentLabel}</span>
         </button>
         {open && (
@@ -107,12 +107,12 @@ export function MemberSelect({ members, allMember }: Props) {
               className="fixed inset-0 z-40"
               onClick={() => setOpen(false)}
             />
-            <div className="bg-background border-border absolute top-full right-0 z-50 mt-1 min-w-28 overflow-hidden rounded-lg border shadow-lg">
+            <div className="bg-background border-border absolute top-full right-0 z-50 mt-1 min-w-36 overflow-hidden rounded-lg border shadow-lg">
               {mobileItems.map((item) => (
                 <button
                   key={item.id}
                   type="button"
-                  className="hover:bg-muted block w-full px-4 py-3 text-left text-sm"
+                  className="hover:bg-muted block w-full px-5 py-4 text-left text-base"
                   onClick={() => handleSelect(item.value)}
                 >
                   {item.label}
