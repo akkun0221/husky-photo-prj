@@ -18,9 +18,10 @@ import { deleteLiveAction } from "./actions";
 type Props = {
   liveId: string;
   liveTitle: string;
+  hasPhotos: boolean;
 };
 
-export function DeleteLiveButton({ liveId, liveTitle }: Props) {
+export function DeleteLiveButton({ liveId, liveTitle, hasPhotos }: Props) {
   const [isPending, startTransition] = useTransition();
 
   const handleDelete = () => {
@@ -42,6 +43,14 @@ export function DeleteLiveButton({ liveId, liveTitle }: Props) {
         <AlertDialogHeader>
           <AlertDialogTitle>ライブを削除しますか？</AlertDialogTitle>
           <AlertDialogDescription>
+            {hasPhotos ? (
+              <>
+                <strong className="text-destructive">
+                  写真が紐づいています。写真も同時に削除しますがよろしいでしょうか？
+                </strong>
+                <br />
+              </>
+            ) : null}
             「{liveTitle}」を削除します。この操作は取り消せません。
           </AlertDialogDescription>
         </AlertDialogHeader>

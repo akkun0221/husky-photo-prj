@@ -3,6 +3,7 @@
 import { useState, useCallback, useEffect, useRef, useMemo } from "react";
 import { useIntersectionObserver } from "@/shared/hooks/useIntersectionObserver";
 import { Lightbox } from "@/shared/ui/lightbox";
+import { usePhotoListStore } from "@/entities/photo/PhotoListContext";
 import type { Photo } from "@/entities/photo/types";
 
 const TARGET_ROW_HEIGHT_MOBILE = 120;
@@ -47,20 +48,22 @@ function buildRows(
 }
 
 type Props = {
-  initialPhotos: Photo[];
   fetchMore?: (page: number) => Promise<Photo[]>;
 };
 
-export function PhotoGrid({ initialPhotos, fetchMore }: Props) {
-  const [photos, setPhotos] = useState<Photo[]>(initialPhotos);
+export function PhotoGrid({ fetchMore }: Props) {
+  const photos = usePhotoListStore((s) => s.photos);
+  const page = usePhotoListStore((s) => s.page);
+  const hasMore = usePhotoListStore((s) => s.hasMore);
+  const loading = usePhotoListStore((s) => s.loading);
+  const append = usePhotoListStore((s) => s.append);
+  const nextPage = usePhotoListStore((s) => s.nextPage);
+  const setLoading = usePhotoListStore((s) => s.setLoading);
+  const setHasMore = usePhotoListStore((s) => s.setHasMore);
+
   const [ratios, setRatios] = useState<Map<string, number>>(new Map());
   const [containerWidth, setContainerWidth] = useState(0);
   const [targetHeight, setTargetHeight] = useState(TARGET_ROW_HEIGHT_DESKTOP);
-  const [page, setPage] = useState(1);
-  const [hasMore, setHasMore] = useState(
-    !!fetchMore && initialPhotos.length === 24,
-  );
-  const [loading, setLoading] = useState(false);
   const [lightboxIndex, setLightboxIndex] = useState<number | null>(null);
   const containerRef = useRef<HTMLDivElement>(null);
 
@@ -105,12 +108,21 @@ export function PhotoGrid({ initialPhotos, fetchMore }: Props) {
     try {
       const next = await fetchMore(page);
       if (next.length < 24) setHasMore(false);
-      setPhotos((prev) => [...prev, ...next]);
-      setPage((p) => p + 1);
+      append(next);
+      nextPage();
     } finally {
       setLoading(false);
     }
-  }, [fetchMore, loading, hasMore, page]);
+  }, [
+    fetchMore,
+    loading,
+    hasMore,
+    page,
+    append,
+    nextPage,
+    setLoading,
+    setHasMore,
+  ]);
 
   const sentinelRef = useIntersectionObserver(loadMore, { threshold: 0.1 });
 

@@ -4,12 +4,15 @@ import { getMembers } from "@/entities/member/api";
 import { createAdminClient } from "@/shared/lib/supabase/admin";
 import { Header } from "@/widgets/Header/Header";
 import { MemberSelect } from "@/features/filter-photos/MemberSelect";
-import { LiveDetailPhotoGrid } from "./LiveDetailPhotoGrid";
+import { LiveDetailPhotoFeed } from "@/widgets/LiveDetailPhotoFeed/LiveDetailPhotoFeed";
 
 // generateStaticParams はビルド時実行のため cookies() を使わない adminClient を直接使う
 export async function generateStaticParams() {
   const supabase = createAdminClient();
-  const { data } = await supabase.from("lives").select("id");
+  const { data } = await supabase
+    .from("lives")
+    .select("id")
+    .is("deleted_at", null);
   return (data ?? []).map((row) => ({ id: row.id }));
 }
 
@@ -50,7 +53,7 @@ export default async function LiveDetailPage({ params }: Props) {
               </p>
             }
           >
-            <LiveDetailPhotoGrid liveId={id} />
+            <LiveDetailPhotoFeed liveId={id} />
           </Suspense>
         </div>
       </main>

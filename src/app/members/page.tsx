@@ -4,7 +4,7 @@ import { Suspense } from "react";
 import { getMembers } from "@/entities/member/api";
 import { Header } from "@/widgets/Header/Header";
 import { MemberDropdown } from "@/features/filter-photos/MemberDropdown";
-import { MemberPhotoFeed } from "./MemberPhotoFeed";
+import { MemberPhotoFeed } from "@/widgets/MemberPhotoFeed/MemberPhotoFeed";
 
 export default async function MembersPage() {
   const members = await getMembers();

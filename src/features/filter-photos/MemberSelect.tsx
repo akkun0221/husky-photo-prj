@@ -6,7 +6,6 @@ import {
   SelectContent,
   SelectItem,
   SelectTrigger,
-  SelectValue,
 } from "@/shared/ui/select";
 import type { Member } from "@/entities/member/types";
 
@@ -40,7 +39,14 @@ export function MemberSelect({ members, allMember }: Props) {
   return (
     <Select value={current} onValueChange={handleChange}>
       <SelectTrigger className="w-40">
-        <SelectValue placeholder="全て" />
+        <span
+          data-slot="select-value"
+          className="flex flex-1 text-left text-sm"
+        >
+          {current === ALL_VALUE
+            ? "全て"
+            : (members.find((m) => m.id === current)?.name ?? "全て")}
+        </span>
       </SelectTrigger>
       <SelectContent>
         <SelectItem value={ALL_VALUE}>全て</SelectItem>

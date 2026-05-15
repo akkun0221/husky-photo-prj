@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { S3Client, PutObjectCommand } from "@aws-sdk/client-s3";
-import { createClient } from "@/shared/lib/supabase/server";
+import { createServerSessionClient } from "@/shared/lib/supabase/server-session";
 
 const s3 = new S3Client({
   region: "auto",
@@ -12,7 +12,7 @@ const s3 = new S3Client({
 });
 
 export async function POST(req: NextRequest) {
-  const supabase = await createClient();
+  const supabase = await createServerSessionClient();
   const {
     data: { session },
   } = await supabase.auth.getSession();

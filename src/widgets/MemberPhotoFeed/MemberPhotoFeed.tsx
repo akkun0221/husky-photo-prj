@@ -2,6 +2,7 @@
 
 import { useSearchParams } from "next/navigation";
 import { useQuery } from "@tanstack/react-query";
+import { PhotoListProvider } from "@/entities/photo/PhotoListContext";
 import { PhotoGrid } from "@/widgets/PhotoGrid/PhotoGrid";
 import type { PhotosGroupedByLive } from "@/entities/photo/api";
 
@@ -43,7 +44,9 @@ export function MemberPhotoFeed() {
             <h2 className="text-lg font-semibold">{live.title}</h2>
             <p className="text-xs text-zinc-400">{live.venue}</p>
           </div>
-          <PhotoGrid initialPhotos={photos} />
+          <PhotoListProvider photos={photos} hasMore={false}>
+            <PhotoGrid />
+          </PhotoListProvider>
         </section>
       ))}
     </div>

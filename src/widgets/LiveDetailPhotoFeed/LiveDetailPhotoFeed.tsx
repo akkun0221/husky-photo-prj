@@ -1,7 +1,9 @@
 "use client";
 
+import { useCallback } from "react";
 import { useSearchParams } from "next/navigation";
 import { useQuery } from "@tanstack/react-query";
+import { PhotoListProvider } from "@/entities/photo/PhotoListContext";
 import { PhotoGrid } from "@/widgets/PhotoGrid/PhotoGrid";
 import type { Photo } from "@/entities/photo/types";
 
@@ -9,7 +11,7 @@ type Props = {
   liveId: string;
 };
 
-export function LiveDetailPhotoGrid({ liveId }: Props) {
+export function LiveDetailPhotoFeed({ liveId }: Props) {
   const searchParams = useSearchParams();
   const memberId = searchParams.get("member");
 
@@ -24,13 +26,16 @@ export function LiveDetailPhotoGrid({ liveId }: Props) {
     },
   });
 
-  const fetchMore = async (page: number): Promise<Photo[]> => {
-    const params = new URLSearchParams({ liveId, page: String(page) });
-    if (memberId) params.set("memberId", memberId);
-    const res = await fetch(`/api/photos/by-live?${params.toString()}`);
-    if (!res.ok) throw new Error("写真の取得に失敗しました");
-    return res.json();
-  };
+  const fetchMore = useCallback(
+    async (page: number): Promise<Photo[]> => {
+      const params = new URLSearchParams({ liveId, page: String(page) });
+      if (memberId) params.set("memberId", memberId);
+      const res = await fetch(`/api/photos/by-live?${params.toString()}`);
+      if (!res.ok) throw new Error("写真の取得に失敗しました");
+      return res.json();
+    },
+    [liveId, memberId],
+  );
 
   if (isLoading) {
     return (
@@ -44,12 +49,13 @@ export function LiveDetailPhotoGrid({ liveId }: Props) {
     );
   }
 
-  // memberId 変更時に PhotoGrid を再マウントして状態をリセット
   return (
-    <PhotoGrid
+    <PhotoListProvider
       key={memberId ?? "all"}
-      initialPhotos={initialPhotos}
-      fetchMore={fetchMore}
-    />
+      photos={initialPhotos}
+      hasMore={initialPhotos.length === 24}
+    >
+      <PhotoGrid fetchMore={fetchMore} />
+    </PhotoListProvider>
   );
 }

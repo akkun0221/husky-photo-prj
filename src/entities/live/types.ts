@@ -7,5 +7,7 @@ export type Live = {
   thumbnail_photo_id: string | null;
 };
 
+export type LiveWithPhotoFlag = Live & { hasPhotos: boolean };
+
 export type CreateLiveInput = Omit<Live, "id">;
 export type UpdateLiveInput = Partial<CreateLiveInput>;

@@ -1,16 +1,44 @@
 import { createClient } from "@/shared/lib/supabase/server";
 import { createAdminClient } from "@/shared/lib/supabase/admin";
-import type { Live, CreateLiveInput, UpdateLiveInput } from "./types";
+import type {
+  Live,
+  LiveWithPhotoFlag,
+  CreateLiveInput,
+  UpdateLiveInput,
+} from "./types";
 
 export async function getLives(): Promise<Live[]> {
   const supabase = createClient();
   const { data, error } = await supabase
     .from("lives")
     .select("*")
+    .is("deleted_at", null)
     .order("date", { ascending: false });
 
   if (error) throw new Error(error.message);
   return data;
+}
+
+export async function getLivesAdmin(): Promise<LiveWithPhotoFlag[]> {
+  const supabase = createAdminClient();
+  const [
+    { data: lives, error: livesError },
+    { data: photos, error: photosError },
+  ] = await Promise.all([
+    supabase
+      .from("lives")
+      .select("*")
+      .is("deleted_at", null)
+      .order("date", { ascending: false }),
+    supabase.from("photos").select("live_id"),
+  ]);
+  if (livesError) throw new Error(livesError.message);
+  if (photosError) throw new Error(photosError.message);
+  const liveIdsWithPhotos = new Set(photos?.map((p) => p.live_id) ?? []);
+  return (lives ?? []).map((live) => ({
+    ...live,
+    hasPhotos: liveIdsWithPhotos.has(live.id),
+  }));
 }
 
 export async function getLiveById(id: string): Promise<Live> {
@@ -19,6 +47,7 @@ export async function getLiveById(id: string): Promise<Live> {
     .from("lives")
     .select("*")
     .eq("id", id)
+    .is("deleted_at", null)
     .single();
 
   if (error) throw new Error(error.message);
@@ -55,7 +84,30 @@ export async function updateLive(
 
 export async function deleteLive(id: string): Promise<void> {
   const supabase = createAdminClient();
-  const { error } = await supabase.from("lives").delete().eq("id", id);
+  const { error } = await supabase
+    .from("lives")
+    .update({ deleted_at: new Date().toISOString() })
+    .eq("id", id);
 
   if (error) throw new Error(error.message);
+}
+
+export async function getR2DeletionFailures(): Promise<
+  Array<{
+    id: string;
+    live_id: string | null;
+    photo_id: string | null;
+    member_name: string;
+    r2_url: string;
+    failed_at: string;
+  }>
+> {
+  const supabase = createAdminClient();
+  const { data, error } = await supabase
+    .from("r2_deletion_failures")
+    .select("*")
+    .order("failed_at", { ascending: false });
+
+  if (error) throw new Error(error.message);
+  return data ?? [];
 }

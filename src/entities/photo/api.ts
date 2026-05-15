@@ -45,8 +45,9 @@ export async function getPhotosByMemberId(
   const supabase = createClient();
   const { data, error } = await supabase
     .from("photos")
-    .select("*, lives(date)")
+    .select("*, lives!inner(date)")
     .eq("member_id", memberId)
+    .is("lives.deleted_at", null)
     .order("date", { ascending: false, referencedTable: "lives" })
     .range(offset, offset + limit - 1);
 
@@ -92,6 +93,7 @@ export async function getPhotosGroupedByLive(
     .from("lives")
     .select("*")
     .in("id", liveIds)
+    .is("deleted_at", null)
     .order("date", { ascending: false });
   if (livesError) throw new Error(livesError.message);
 
