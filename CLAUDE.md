@@ -39,7 +39,7 @@
   - 画像ストレージ
   - Cloudflare R2
   - ホスティング
-  - Cloudflare Pages
+  - Vercel
 
 ---
 
