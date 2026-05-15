@@ -47,13 +47,24 @@ export default async function LiveDetailPage({ params }: Props) {
     <>
       <Header />
       <main className="space-y-6 py-8">
+        {/* タイトル + モバイルフィルター（同一行） */}
         <div className="mx-auto max-w-5xl px-4">
-          <p className="text-sm text-zinc-500">{live.date}</p>
-          <h1 className="text-2xl font-bold">{live.title}</h1>
-          <p className="text-sm text-zinc-400">{live.venue}</p>
+          <div className="flex items-end justify-between gap-4 md:block">
+            <div>
+              <p className="text-sm text-zinc-500">{live.date}</p>
+              <h1 className="text-2xl font-bold">{live.title}</h1>
+              <p className="text-sm text-zinc-400">{live.venue}</p>
+            </div>
+            <div className="md:hidden">
+              <Suspense>
+                <MemberSelect members={members} allMember={allMember} />
+              </Suspense>
+            </div>
+          </div>
         </div>
 
-        <div className="mx-auto flex max-w-5xl justify-end px-4">
+        {/* デスクトップフィルター（タイトルの下・別行） */}
+        <div className="mx-auto hidden max-w-5xl justify-end px-4 md:flex">
           <Suspense>
             <MemberSelect members={members} allMember={allMember} />
           </Suspense>
