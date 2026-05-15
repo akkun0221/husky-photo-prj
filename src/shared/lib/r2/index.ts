@@ -1,27 +1,43 @@
-import { S3Client, DeleteObjectCommand } from "@aws-sdk/client-s3";
+import { AwsClient } from "aws4fetch";
 import { createAdminClient } from "@/shared/lib/supabase/admin";
 
-export const s3 = new S3Client({
+const r2 = new AwsClient({
+  accessKeyId: process.env.CLOUDFLARE_R2_ACCESS_KEY_ID!,
+  secretAccessKey: process.env.CLOUDFLARE_R2_SECRET_ACCESS_KEY!,
+  service: "s3",
   region: "auto",
-  endpoint: process.env.CLOUDFLARE_R2_ENDPOINT,
-  credentials: {
-    accessKeyId: process.env.CLOUDFLARE_R2_ACCESS_KEY_ID!,
-    secretAccessKey: process.env.CLOUDFLARE_R2_SECRET_ACCESS_KEY!,
-  },
 });
+
+const R2_ENDPOINT = process.env.CLOUDFLARE_R2_ENDPOINT!;
+const R2_BUCKET = process.env.CLOUDFLARE_R2_BUCKET_NAME!;
 
 export function getKeyFromUrl(url: string): string {
   const parsed = new URL(url);
   return parsed.pathname.slice(1);
 }
 
+export async function putR2Object(
+  key: string,
+  body: ArrayBuffer,
+  contentType: string,
+): Promise<void> {
+  const url = `${R2_ENDPOINT}/${R2_BUCKET}/${key}`;
+  const res = await r2.fetch(url, {
+    method: "PUT",
+    body,
+    headers: { "Content-Type": contentType },
+  });
+  if (!res.ok) {
+    throw new Error(`R2 put failed: ${res.status} ${res.statusText}`);
+  }
+}
+
 export async function deleteR2Object(key: string): Promise<void> {
-  await s3.send(
-    new DeleteObjectCommand({
-      Bucket: process.env.CLOUDFLARE_R2_BUCKET_NAME,
-      Key: key,
-    }),
-  );
+  const url = `${R2_ENDPOINT}/${R2_BUCKET}/${key}`;
+  const res = await r2.fetch(url, { method: "DELETE" });
+  if (!res.ok && res.status !== 404) {
+    throw new Error(`R2 delete failed: ${res.status} ${res.statusText}`);
+  }
 }
 
 export async function logR2DeletionFailure(
