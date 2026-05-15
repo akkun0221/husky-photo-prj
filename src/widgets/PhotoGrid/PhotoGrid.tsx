@@ -88,13 +88,29 @@ export function PhotoGrid({ fetchMore }: Props) {
   useEffect(() => {
     const el = containerRef.current;
     if (!el) return;
+
+    const updateScrollMargin = () => {
+      setScrollMargin(
+        Math.round(el.getBoundingClientRect().top + window.scrollY),
+      );
+    };
+
+    updateScrollMargin();
     setContainerWidth(el.clientWidth);
-    setScrollMargin(el.offsetTop);
-    const ro = new ResizeObserver((entries) => {
+
+    const containerRo = new ResizeObserver((entries) => {
       setContainerWidth(entries[0]?.contentRect.width ?? 0);
     });
-    ro.observe(el);
-    return () => ro.disconnect();
+    containerRo.observe(el);
+
+    // 他セクションのコンテンツロードでページ高さが変わったときにscrollMarginを再計算
+    const docRo = new ResizeObserver(updateScrollMargin);
+    docRo.observe(document.documentElement);
+
+    return () => {
+      containerRo.disconnect();
+      docRo.disconnect();
+    };
   }, []);
 
   useEffect(() => {
