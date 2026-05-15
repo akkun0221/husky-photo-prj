@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { Geist } from "next/font/google";
+import { SpeedInsights } from "@vercel/speed-insights/next";
 import { QueryProvider } from "@/shared/providers/QueryProvider";
 import "./globals.css";
 
@@ -35,6 +36,7 @@ export default function RootLayout({
     <html lang="ja" className={`${geistSans.variable} h-full antialiased`}>
       <body className="flex min-h-full flex-col">
         <QueryProvider>{children}</QueryProvider>
+        <SpeedInsights />
       </body>
     </html>
   );
