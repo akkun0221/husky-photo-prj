@@ -13,4 +13,5 @@ export async function createPhotoAction(
   revalidatePath(`/lives/${input.live_id}`);
   revalidatePath("/lives");
   revalidatePath("/");
+  revalidatePath("/members");
 }
