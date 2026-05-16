@@ -1,6 +1,6 @@
 "use client";
 
-import { useRef, useState, useCallback } from "react";
+import { useRef, useState, useCallback, memo } from "react";
 import { Button } from "@/shared/ui/button";
 import { Label } from "@/shared/ui/label";
 import {
@@ -35,6 +35,107 @@ type Props = {
   lives: Live[];
   members: Member[];
 };
+
+type FileItemProps = {
+  file: UploadFile;
+  members: Member[];
+  onToggleCheck: (id: string) => void;
+  onUpdateMemberId: (id: string, memberId: string) => void;
+  onRemove: (id: string) => void;
+};
+
+// React.memo で囲むことで、自分のファイルデータが変わったときだけ再レンダリング
+const FileItem = memo(function FileItem({
+  file: f,
+  members,
+  onToggleCheck,
+  onUpdateMemberId,
+  onRemove,
+}: FileItemProps) {
+  return (
+    <div className="relative space-y-1.5">
+      {/* サムネイル */}
+      <div
+        className={`bg-muted relative aspect-square overflow-hidden rounded-md ${
+          f.status === "pending" && !f.memberId ? "ring-2 ring-red-400" : ""
+        }`}
+      >
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img
+          src={f.preview}
+          alt={f.file.name}
+          className="h-full w-full object-cover"
+        />
+        {f.status === "uploading" && (
+          <div className="absolute inset-0 flex items-center justify-center bg-black/40">
+            <span className="text-xs text-white">処理中...</span>
+          </div>
+        )}
+        {f.status === "done" && (
+          <div className="absolute inset-0 flex items-center justify-center bg-green-500/40">
+            <span className="text-xs font-bold text-white">完了</span>
+          </div>
+        )}
+        {f.status === "error" && (
+          <div className="absolute inset-0 flex items-center justify-center bg-red-500/40 p-1">
+            <span className="text-center text-xs text-white">
+              {f.errorMessage ?? "エラー"}
+            </span>
+          </div>
+        )}
+        {f.status === "pending" && (
+          <input
+            type="checkbox"
+            checked={f.checked}
+            onChange={() => onToggleCheck(f.id)}
+            onClick={(e) => e.stopPropagation()}
+            className="absolute top-1 left-1 h-4 w-4 cursor-pointer"
+          />
+        )}
+        {f.status === "pending" && (
+          <button
+            type="button"
+            onClick={(e) => {
+              e.stopPropagation();
+              onRemove(f.id);
+            }}
+            className="absolute top-1 right-1 flex h-5 w-5 items-center justify-center rounded-full bg-black/60 text-white hover:bg-black/80"
+            aria-label="削除"
+          >
+            ×
+          </button>
+        )}
+      </div>
+
+      {/* メンバー選択 */}
+      <Select
+        value={f.memberId}
+        onValueChange={(v) => onUpdateMemberId(f.id, v ?? "")}
+      >
+        <SelectTrigger
+          size="sm"
+          className="w-full text-xs"
+          disabled={f.status !== "pending"}
+        >
+          <span
+            className={`flex flex-1 text-left ${!f.memberId ? "text-muted-foreground" : ""}`}
+          >
+            {f.memberId
+              ? members.find((m) => m.id === f.memberId)?.name
+              : "選択してください"}
+          </span>
+        </SelectTrigger>
+        <SelectContent alignItemWithTrigger={false} className="min-w-32">
+          {members.map((m) => (
+            <SelectItem key={m.id} value={m.id}>
+              {m.name}
+            </SelectItem>
+          ))}
+        </SelectContent>
+      </Select>
+    </div>
+  );
+});
 
 export function UploadPhoto({ lives, members }: Props) {
   const [liveId, setLiveId] = useState("");
@@ -78,17 +179,18 @@ export function UploadPhoto({ lives, members }: Props) {
     }
   };
 
-  const updateMemberId = (fileId: string, memberId: string) => {
+  // functional update を使うので deps は空で安定した参照を保てる
+  const updateMemberId = useCallback((fileId: string, memberId: string) => {
     setFiles((prev) =>
       prev.map((f) => (f.id === fileId ? { ...f, memberId } : f)),
     );
-  };
+  }, []);
 
-  const toggleCheck = (fileId: string) => {
+  const toggleCheck = useCallback((fileId: string) => {
     setFiles((prev) =>
       prev.map((f) => (f.id === fileId ? { ...f, checked: !f.checked } : f)),
     );
-  };
+  }, []);
 
   const applyBulkMember = () => {
     if (!bulkMemberId) return;
@@ -101,13 +203,13 @@ export function UploadPhoto({ lives, members }: Props) {
     );
   };
 
-  const removeFile = (fileId: string) => {
+  const removeFile = useCallback((fileId: string) => {
     setFiles((prev) => {
       const target = prev.find((f) => f.id === fileId);
       if (target) URL.revokeObjectURL(target.preview);
       return prev.filter((f) => f.id !== fileId);
     });
-  };
+  }, []);
 
   async function uploadToR2(blob: Blob, key: string): Promise<string> {
     const formData = new FormData();
@@ -126,7 +228,6 @@ export function UploadPhoto({ lives, members }: Props) {
     if (!liveId || files.length === 0) return;
     setIsUploading(true);
 
-    // 案③: 3枚ずつ並列処理
     const CONCURRENCY = 3;
     const pending = files.filter((f) => f.status === "pending");
 
@@ -282,95 +383,14 @@ export function UploadPhoto({ lives, members }: Props) {
       {files.length > 0 && (
         <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5">
           {files.map((f) => (
-            <div key={f.id} className="relative space-y-1.5">
-              {/* サムネイル */}
-              <div
-                className={`bg-muted relative aspect-square overflow-hidden rounded-md ${
-                  f.status === "pending" && !f.memberId
-                    ? "ring-2 ring-red-400"
-                    : ""
-                }`}
-              >
-                {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img
-                  src={f.preview}
-                  alt={f.file.name}
-                  className="h-full w-full object-cover"
-                />
-                {/* ステータスオーバーレイ */}
-                {f.status === "uploading" && (
-                  <div className="absolute inset-0 flex items-center justify-center bg-black/40">
-                    <span className="text-xs text-white">処理中...</span>
-                  </div>
-                )}
-                {f.status === "done" && (
-                  <div className="absolute inset-0 flex items-center justify-center bg-green-500/40">
-                    <span className="text-xs font-bold text-white">完了</span>
-                  </div>
-                )}
-                {f.status === "error" && (
-                  <div className="absolute inset-0 flex items-center justify-center bg-red-500/40 p-1">
-                    <span className="text-center text-xs text-white">
-                      {f.errorMessage ?? "エラー"}
-                    </span>
-                  </div>
-                )}
-                {/* チェックボックス（左上） */}
-                {f.status === "pending" && (
-                  <input
-                    type="checkbox"
-                    checked={f.checked}
-                    onChange={() => toggleCheck(f.id)}
-                    onClick={(e) => e.stopPropagation()}
-                    className="absolute top-1 left-1 h-4 w-4 cursor-pointer"
-                  />
-                )}
-                {/* 削除ボタン（右上） */}
-                {f.status === "pending" && (
-                  <button
-                    type="button"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      removeFile(f.id);
-                    }}
-                    className="absolute top-1 right-1 flex h-5 w-5 items-center justify-center rounded-full bg-black/60 text-white hover:bg-black/80"
-                    aria-label="削除"
-                  >
-                    ×
-                  </button>
-                )}
-              </div>
-
-              {/* メンバー選択 */}
-              <Select
-                value={f.memberId}
-                onValueChange={(v) => updateMemberId(f.id, v ?? "")}
-              >
-                <SelectTrigger
-                  size="sm"
-                  className="w-full text-xs"
-                  disabled={f.status !== "pending"}
-                >
-                  <span
-                    className={`flex flex-1 text-left ${!f.memberId ? "text-muted-foreground" : ""}`}
-                  >
-                    {f.memberId
-                      ? members.find((m) => m.id === f.memberId)?.name
-                      : "選択してください"}
-                  </span>
-                </SelectTrigger>
-                <SelectContent
-                  alignItemWithTrigger={false}
-                  className="min-w-32"
-                >
-                  {members.map((m) => (
-                    <SelectItem key={m.id} value={m.id}>
-                      {m.name}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
+            <FileItem
+              key={f.id}
+              file={f}
+              members={members}
+              onToggleCheck={toggleCheck}
+              onUpdateMemberId={updateMemberId}
+              onRemove={removeFile}
+            />
           ))}
         </div>
       )}
