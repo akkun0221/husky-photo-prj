@@ -30,7 +30,7 @@ export async function getLivesWithPhotoFlag(): Promise<LiveWithPhotoFlag[]> {
       .select("*")
       .is("deleted_at", null)
       .order("date", { ascending: false }),
-    supabase.from("photos").select("live_id"),
+    supabase.from("photos").select("live_id").limit(10000),
   ]);
   if (livesError) throw new Error(livesError.message);
   if (photosError) throw new Error(photosError.message);
@@ -52,7 +52,7 @@ export async function getLivesAdmin(): Promise<LiveWithPhotoFlag[]> {
       .select("*")
       .is("deleted_at", null)
       .order("date", { ascending: false }),
-    supabase.from("photos").select("live_id"),
+    supabase.from("photos").select("live_id").limit(10000),
   ]);
   if (livesError) throw new Error(livesError.message);
   if (photosError) throw new Error(photosError.message);

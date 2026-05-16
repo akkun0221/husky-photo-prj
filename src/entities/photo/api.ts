@@ -80,7 +80,7 @@ export async function getPhotosGroupedByLive(
 ): Promise<PhotosGroupedByLive[]> {
   const supabase = createClient();
 
-  let photosQuery = supabase.from("photos").select("*");
+  let photosQuery = supabase.from("photos").select("*").limit(10000);
   if (memberId !== null) {
     photosQuery = photosQuery.eq("member_id", memberId);
   }
