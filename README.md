@@ -1,36 +1,109 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# husky フォトアルバム
 
-## Getting Started
+アイドルグループ **husky** のライブ写真を管理・公開するフォトアルバム Web アプリ。
 
-First, run the development server:
+## 技術スタック
+
+| カテゴリ       | 採用技術                           |
+| -------------- | ---------------------------------- |
+| フレームワーク | Next.js 16 App Router (TypeScript) |
+| スタイル       | Tailwind CSS + Shadcn UI           |
+| 状態管理       | Zustand + TanStack Query v5        |
+| DB / 認証      | Supabase (PostgreSQL + Auth)       |
+| 画像ストレージ | Cloudflare R2                      |
+| ホスティング   | Vercel                             |
+
+## ローカル環境のセットアップ
+
+### 1. 前提条件
+
+Node.js が必要です。未インストールの場合は Homebrew でインストールしてください。
+
+```bash
+brew install node
+```
+
+### 2. リポジトリのクローン & 依存関係インストール
+
+```bash
+git clone <repository-url>
+cd husky-photo-prj
+npm install
+```
+
+### 3. 環境変数の設定
+
+プロジェクトルートに `.env.local` を作成し、以下の変数を設定します。
+
+```bash
+cp .env.local.example .env.local  # テンプレートがある場合
+# または以下の内容を手動で作成
+```
+
+`.env.local` の内容：
+
+```env
+# ── Supabase ──────────────────────────────────────────
+NEXT_PUBLIC_SUPABASE_URL=https://xxxxx.supabase.co
+NEXT_PUBLIC_SUPABASE_ANON_KEY=eyJ...
+SUPABASE_SERVICE_ROLE_KEY=eyJ...
+
+# ── Cloudflare R2 ──────────────────────────────────────
+NEXT_PUBLIC_CLOUDFLARE_R2_PUBLIC_URL=https://pub-xxxx.r2.dev
+CLOUDFLARE_R2_PUBLIC_URL=https://pub-xxxx.r2.dev
+CLOUDFLARE_R2_BUCKET_NAME=husky-photos
+CLOUDFLARE_R2_ENDPOINT=https://<アカウントID>.r2.cloudflarestorage.com
+CLOUDFLARE_R2_ACCESS_KEY_ID=xxxx
+CLOUDFLARE_R2_SECRET_ACCESS_KEY=xxxx
+```
+
+> **注意:** `NEXT_PUBLIC_CLOUDFLARE_R2_PUBLIC_URL` と `CLOUDFLARE_R2_PUBLIC_URL` は同じ値を設定してください。
+> 前者はブラウザ側、後者はサーバー側（アップロードRoute Handler）で使われます。
+> どちらか一方だけだとアップロードしたURLがDBに `undefined/...` と保存されてしまいます。
+
+#### 各値の取得場所
+
+**Supabase**（[Supabase Dashboard](https://supabase.com/dashboard) → プロジェクト選択 → Settings → API）
+
+| 変数                            | 取得場所                           |
+| ------------------------------- | ---------------------------------- |
+| `NEXT_PUBLIC_SUPABASE_URL`      | Project URL                        |
+| `NEXT_PUBLIC_SUPABASE_ANON_KEY` | Project API keys → `anon` `public` |
+| `SUPABASE_SERVICE_ROLE_KEY`     | Project API keys → `service_role`  |
+
+**Cloudflare R2**（[Cloudflare Dashboard](https://dash.cloudflare.com) → R2 Object Storage → バケット選択）
+
+| 変数                                                                | 取得場所                                                                                                     |
+| ------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------ |
+| `NEXT_PUBLIC_CLOUDFLARE_R2_PUBLIC_URL` / `CLOUDFLARE_R2_PUBLIC_URL` | Settings → Public Development URL（例: `https://pub-xxxx.r2.dev`）                                           |
+| `CLOUDFLARE_R2_BUCKET_NAME`                                         | バケット名（例: `husky-photos`）                                                                             |
+| `CLOUDFLARE_R2_ENDPOINT`                                            | Settings → S3 API の URL からバケット名を除いた部分（例: `https://<アカウントID>.r2.cloudflarestorage.com`） |
+| `CLOUDFLARE_R2_ACCESS_KEY_ID`                                       | R2 → Manage R2 API Tokens → API トークン作成 → Access Key ID                                                 |
+| `CLOUDFLARE_R2_SECRET_ACCESS_KEY`                                   | 同上 → Secret Access Key                                                                                     |
+
+### 4. 開発サーバーの起動
 
 ```bash
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+[http://localhost:3000](http://localhost:3000) でアクセスできます。
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+管理画面は [http://localhost:3000/admin](http://localhost:3000/admin)（要ログイン）。
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+## 主なページ構成
 
-## Learn More
+| URL             | 内容                           |
+| --------------- | ------------------------------ |
+| `/`             | トップ（ライブカレンダー）     |
+| `/lives`        | ライブ一覧                     |
+| `/lives/[id]`   | ライブ詳細・写真グリッド       |
+| `/members`      | メンバー別写真                 |
+| `/admin`        | 管理ダッシュボード（認証必須） |
+| `/admin/upload` | 写真アップロード（認証必須）   |
 
-To learn more about Next.js, take a look at the following resources:
+## ビルド確認
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
-
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+```bash
+npm run build
+```
