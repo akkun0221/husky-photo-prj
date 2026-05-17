@@ -1,5 +1,3 @@
-const YT_VIDEO_ID = "08JiOyg4moY";
-
 type Props = {
   showCount: number;
   photoCount: number;
@@ -8,36 +6,7 @@ type Props = {
 
 export function OpeningMonument({ showCount, photoCount, voiceCount }: Props) {
   return (
-    <section
-      className="relative overflow-hidden px-16 pt-18 pb-14 text-center"
-      style={{ background: "var(--memorial-bg)" }}
-    >
-      {/* YouTube 背景動画 */}
-      <div
-        className="pointer-events-none absolute inset-0 overflow-hidden"
-        aria-hidden="true"
-      >
-        <iframe
-          src={`https://www.youtube.com/embed/${YT_VIDEO_ID}?autoplay=1&mute=1&loop=1&playlist=${YT_VIDEO_ID}&controls=0&disablekb=1&modestbranding=1&playsinline=1&rel=0`}
-          allow="autoplay; encrypted-media"
-          className="absolute"
-          style={{
-            top: "50%",
-            left: "50%",
-            width: "177.78vh",
-            height: "56.25vw",
-            minWidth: "100%",
-            minHeight: "100%",
-            transform: "translate(-50%, -50%) scale(1.1)",
-            filter: "blur(24px)",
-            opacity: 0.12,
-            border: "none",
-          }}
-          title=""
-        />
-      </div>
-
-      {/* foreground */}
+    <section className="relative overflow-hidden px-4 pt-10 pb-8 text-center sm:px-16 sm:pt-18 sm:pb-14">
       <div className="relative z-10">
         <p
           className="mb-8 text-xs tracking-[0.5em] uppercase"
@@ -53,19 +22,22 @@ export function OpeningMonument({ showCount, photoCount, voiceCount }: Props) {
             fontWeight: 900,
             lineHeight: 0.88,
             letterSpacing: "-0.04em",
-            fontSize: "clamp(72px, 12vw, 144px)",
+            fontSize: "clamp(52px, 12vw, 144px)",
             color: "var(--memorial-fg)",
           }}
         >
           2022
-          <span className="mx-6" style={{ color: "var(--memorial-faint)" }}>
+          <span
+            className="mx-4 sm:mx-6"
+            style={{ color: "var(--memorial-faint)" }}
+          >
             —
           </span>
           2026
         </div>
 
         <p
-          className="mx-auto mt-8 max-w-xl text-sm leading-loose"
+          className="mx-auto mt-8 max-w-xl px-2 text-sm leading-loose sm:px-0"
           style={{ color: "var(--memorial-sub)", lineHeight: 2, fontSize: 15 }}
         >
           2022年12月10日、秋葉原のライブハウスで、はじめて husky を撮りました。
@@ -76,7 +48,7 @@ export function OpeningMonument({ showCount, photoCount, voiceCount }: Props) {
 
         {/* 統計数値 */}
         <div
-          className="mt-9 inline-flex items-baseline gap-7 font-mono text-xs tracking-[0.3em] uppercase"
+          className="mt-9 inline-flex flex-wrap items-baseline justify-center gap-5 font-mono text-xs tracking-[0.3em] uppercase sm:gap-7"
           style={{ color: "var(--memorial-sub)" }}
         >
           <StatItem value={showCount} label="shows" />

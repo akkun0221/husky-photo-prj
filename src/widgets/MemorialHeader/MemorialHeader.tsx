@@ -9,10 +9,10 @@ const NAV: { href: string; label: string; active?: boolean }[] = [
 export function MemorialHeader() {
   return (
     <header
-      className="relative flex items-center justify-between border-b px-16 py-8"
+      className="relative flex items-center justify-between border-b px-4 py-4 sm:px-16 sm:py-8"
       style={{
         borderColor: "var(--memorial-rule)",
-        background: "var(--memorial-bg)",
+        background: "rgba(10,8,7,0.92)",
       }}
     >
       <div className="flex items-center gap-3">
@@ -23,7 +23,7 @@ export function MemorialHeader() {
         />
         <Link
           href="/"
-          className="text-lg font-semibold tracking-wider"
+          className="text-base font-semibold tracking-wider sm:text-lg"
           style={{
             color: "var(--memorial-fg)",
             fontFamily: "var(--font-geist-sans), sans-serif",
@@ -62,12 +62,12 @@ export function MemorialHeader() {
         </Link>
       </div>
 
-      <nav className="flex gap-10">
+      <nav className="flex gap-5 sm:gap-10">
         {NAV.map((item) => (
           <Link
             key={item.href}
             href={item.href}
-            className="text-xs font-medium tracking-[0.32em] uppercase transition-colors"
+            className="text-[10px] font-medium tracking-[0.2em] uppercase transition-colors sm:text-xs sm:tracking-[0.32em]"
             style={{
               color: item.active ? "var(--memorial-fg)" : "var(--memorial-sub)",
             }}

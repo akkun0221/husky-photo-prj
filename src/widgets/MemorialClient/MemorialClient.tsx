@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useMemo, useState, useEffect } from "react";
+import { useCallback, useMemo } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import Image from "next/image";
 import type { LiveWithPhotoCount } from "@/entities/live/types";
@@ -16,27 +16,28 @@ type Props = {
 export function MemorialClient({ lives, members }: Props) {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const [direction, setDirection] = useState<Direction>(() =>
-    searchParams.get("dir") === "reverse" ? "reverse" : "forward",
-  );
 
-  // URL クエリを direction に同期
-  useEffect(() => {
-    const params = new URLSearchParams(searchParams.toString());
-    if (direction === "reverse") {
-      params.set("dir", "reverse");
-    } else {
-      params.delete("dir");
-    }
-    router.replace(`?${params.toString()}`, { scroll: false });
-  }, [direction, router, searchParams]);
+  // URL を単一の情報源として direction を導出（useState + useEffect による同期バグを回避）
+  const direction: Direction =
+    searchParams.get("dir") === "reverse" ? "reverse" : "forward";
+
+  const handleToggle = useCallback(
+    (d: Direction) => {
+      const params = new URLSearchParams(searchParams.toString());
+      if (d === "reverse") {
+        params.set("dir", "reverse");
+      } else {
+        params.delete("dir");
+      }
+      router.replace(`?${params.toString()}`, { scroll: false });
+    },
+    [router, searchParams],
+  );
 
   const sorted = useMemo(() => {
     const asc = [...lives].reverse(); // DB は descending で来るので昇順に直す
     return direction === "forward" ? asc : [...asc].reverse();
   }, [lives, direction]);
-
-  const handleToggle = useCallback((d: Direction) => setDirection(d), []);
 
   const years = ["2022", "2023", "2024", "2025", "2026"];
 
@@ -53,18 +54,18 @@ export function MemorialClient({ lives, members }: Props) {
     <>
       {/* ── Sticky Jump Bar ── */}
       <div
-        className="sticky top-0 z-10 flex flex-wrap items-center gap-6 px-10 py-3.5"
+        className="sticky top-0 z-10 flex flex-nowrap items-center gap-4 overflow-x-auto px-4 py-3.5 sm:gap-6 sm:px-10"
         style={{
-          background: "rgba(10,8,7,0.85)",
+          background: "rgba(10,8,7,0.88)",
           backdropFilter: "blur(14px)",
           borderTop: "1px solid var(--memorial-rule)",
           borderBottom: "1px solid var(--memorial-rule)",
         }}
       >
         {/* direction toggle */}
-        <div className="flex items-center gap-2">
+        <div className="flex flex-shrink-0 items-center gap-2">
           <span
-            className="font-mono text-[10px] tracking-[0.3em] uppercase"
+            className="hidden font-mono text-[10px] tracking-[0.3em] uppercase sm:inline"
             style={{ color: "var(--memorial-sub)" }}
           >
             direction
@@ -82,7 +83,7 @@ export function MemorialClient({ lives, members }: Props) {
               <button
                 key={key}
                 onClick={() => handleToggle(key)}
-                className="flex cursor-pointer items-center gap-1.5 border-none px-3 py-1.5 text-[11px] font-semibold transition-colors"
+                className="flex flex-shrink-0 cursor-pointer items-center gap-1.5 border-none px-3 py-1.5 text-[11px] font-semibold transition-colors"
                 style={{
                   background:
                     direction === key
@@ -93,7 +94,7 @@ export function MemorialClient({ lives, members }: Props) {
                 }}
               >
                 <span>{label}</span>
-                <span className="font-mono text-[9px] tracking-[0.1em] opacity-55">
+                <span className="hidden font-mono text-[9px] tracking-[0.1em] opacity-55 sm:inline">
                   {sub}
                 </span>
               </button>
@@ -102,14 +103,14 @@ export function MemorialClient({ lives, members }: Props) {
         </div>
 
         <div
-          className="h-6 w-px"
+          className="h-6 w-px flex-shrink-0"
           style={{ background: "var(--memorial-rule)" }}
         />
 
         {/* 年 pills */}
-        <div className="flex items-center gap-2">
+        <div className="flex flex-shrink-0 items-center gap-2">
           <span
-            className="font-mono text-[10px] tracking-[0.3em] uppercase"
+            className="hidden font-mono text-[10px] tracking-[0.3em] uppercase sm:inline"
             style={{ color: "var(--memorial-sub)" }}
           >
             jump to year
@@ -119,7 +120,7 @@ export function MemorialClient({ lives, members }: Props) {
               <a
                 key={y}
                 href={`#y${y}`}
-                className="inline-flex items-baseline gap-1.5 px-3 py-1.5 font-mono text-[11px] font-semibold tracking-[0.05em] no-underline transition-opacity hover:opacity-70"
+                className="inline-flex items-baseline gap-1 px-2 py-1.5 font-mono text-[11px] font-semibold tracking-[0.05em] no-underline transition-opacity hover:opacity-70 sm:gap-1.5 sm:px-3"
                 style={{
                   border: "1px solid var(--memorial-rule)",
                   color: "var(--memorial-fg)",
@@ -138,14 +139,14 @@ export function MemorialClient({ lives, members }: Props) {
         </div>
 
         <div
-          className="h-6 w-px"
+          className="h-6 w-px flex-shrink-0"
           style={{ background: "var(--memorial-rule)" }}
         />
 
         {/* member shortcuts */}
-        <div className="flex items-center gap-2">
+        <div className="flex flex-shrink-0 items-center gap-2">
           <span
-            className="font-mono text-[10px] tracking-[0.3em] uppercase"
+            className="hidden font-mono text-[10px] tracking-[0.3em] uppercase sm:inline"
             style={{ color: "var(--memorial-sub)" }}
           >
             by member
@@ -155,18 +156,18 @@ export function MemorialClient({ lives, members }: Props) {
               <a
                 key={m.id}
                 href={`/members?member=${m.id}`}
-                className="flex cursor-pointer items-center gap-1.5 py-1 pr-2 pl-1 no-underline transition-opacity hover:opacity-70"
+                className="flex flex-shrink-0 cursor-pointer items-center gap-1.5 py-1 pr-2 pl-1 no-underline transition-opacity hover:opacity-70"
                 style={{
                   border: "1px solid var(--memorial-rule)",
                   color: "var(--memorial-fg)",
                 }}
               >
                 <div
-                  className="h-6 w-6 flex-shrink-0"
+                  className="h-5 w-5 flex-shrink-0 sm:h-6 sm:w-6"
                   style={{ background: m.color }}
                 />
                 <span
-                  className="font-mono text-[10px] font-semibold tracking-[0.15em]"
+                  className="hidden font-mono text-[10px] font-semibold tracking-[0.15em] sm:inline"
                   style={{ color: "var(--memorial-fg)" }}
                 >
                   {m.name}
@@ -176,9 +177,9 @@ export function MemorialClient({ lives, members }: Props) {
           </div>
         </div>
 
-        <div className="flex-1" />
+        <div className="hidden flex-1 sm:block" />
         <span
-          className="font-mono text-[10px] tracking-[0.3em] uppercase"
+          className="hidden flex-shrink-0 font-mono text-[10px] tracking-[0.3em] uppercase sm:inline"
           style={{ color: "var(--memorial-sub)" }}
         >
           ↓ scroll to walk through
@@ -186,25 +187,19 @@ export function MemorialClient({ lives, members }: Props) {
       </div>
 
       {/* ── Memorial Timeline ── */}
-      <section
-        className="relative px-16 pt-15 pb-20"
-        style={{ background: "var(--memorial-bg)" }}
-      >
-        {/* central spine */}
+      <section className="relative px-4 pt-10 pb-20 sm:px-16 sm:pt-15">
+        {/* central spine (desktop only) */}
         <div
-          className="pointer-events-none absolute top-0 bottom-0 left-1/2 w-px -translate-x-1/2"
+          className="pointer-events-none absolute top-0 bottom-0 left-1/2 hidden w-px -translate-x-1/2 sm:block"
           style={{ background: "var(--memorial-faint)" }}
         />
 
         <div className="relative">
           {/* 方向インジケーター */}
-          <div className="mb-10 text-center">
+          <div className="mb-8 text-center sm:mb-10">
             <div
               className="inline-block px-4 py-1.5 font-mono text-[10px] tracking-[0.4em] uppercase"
-              style={{
-                background: "var(--memorial-bg)",
-                color: "var(--memorial-accent)",
-              }}
+              style={{ color: "var(--memorial-accent)" }}
             >
               ──{" "}
               {direction === "forward"
@@ -248,9 +243,55 @@ export function MemorialClient({ lives, members }: Props) {
                   </div>
                 )}
 
-                {/* カード行 */}
+                {/* モバイル: 縦並びカード */}
                 <div
-                  className="relative mb-14 grid items-center"
+                  className="mb-8 border-l-2 pl-4 sm:hidden"
+                  style={{ borderColor: "var(--memorial-faint)" }}
+                >
+                  <a
+                    href={`/lives/${live.id}`}
+                    className="block no-underline transition-opacity hover:opacity-75"
+                    style={{ color: "var(--memorial-fg)" }}
+                  >
+                    <PhotoCell live={live} />
+                    <div className="mt-3">
+                      <div
+                        className="font-mono text-[10px] tracking-[0.3em] uppercase"
+                        style={{ color: "var(--memorial-sub)" }}
+                      >
+                        {live.weekday} · {live.venue}
+                      </div>
+                      <div
+                        style={{
+                          fontFamily:
+                            "var(--font-playfair), 'Noto Serif JP', serif",
+                          fontWeight: 300,
+                          fontStyle: "italic",
+                          fontSize: "clamp(28px, 5vw, 40px)",
+                          lineHeight: 1.0,
+                          letterSpacing: "-0.02em",
+                          color: "var(--memorial-fg)",
+                          marginTop: 4,
+                        }}
+                      >
+                        {live.date}
+                      </div>
+                      <div className="mt-1.5 text-base font-medium">
+                        {live.title || live.venue}
+                      </div>
+                      <div
+                        className="mt-2 font-mono text-[10px] tracking-[0.3em] uppercase"
+                        style={{ color: "var(--memorial-sub)" }}
+                      >
+                        view {live.photoCount} photos →
+                      </div>
+                    </div>
+                  </a>
+                </div>
+
+                {/* デスクトップ: 3列グリッド */}
+                <div
+                  className="relative mb-14 hidden items-center sm:grid"
                   style={{ gridTemplateColumns: "1fr 60px 1fr" }}
                 >
                   {/* spine node */}
@@ -344,10 +385,7 @@ export function MemorialClient({ lives, members }: Props) {
           <div className="relative flex justify-center pt-3">
             <div
               className="px-4 py-2 font-mono text-[10px] tracking-[0.5em] uppercase"
-              style={{
-                background: "var(--memorial-bg)",
-                color: "var(--memorial-accent)",
-              }}
+              style={{ color: "var(--memorial-accent)" }}
             >
               ──{" "}
               {direction === "forward"
@@ -369,11 +407,10 @@ function PhotoCell({ live }: { live: LiveWithPhotoCount }) {
 
   return (
     <div
-      className="relative overflow-hidden"
+      className="relative w-full overflow-hidden"
       style={{
         aspectRatio: "3/2",
         boxShadow: "0 12px 30px rgba(0,0,0,0.4)",
-        height: 200,
       }}
     >
       <Image
@@ -381,7 +418,7 @@ function PhotoCell({ live }: { live: LiveWithPhotoCount }) {
         alt={`${live.venue} - ${live.date}`}
         fill
         className="object-cover"
-        sizes="(max-width: 768px) 50vw, 33vw"
+        sizes="(max-width: 640px) 100vw, 33vw"
       />
     </div>
   );
@@ -390,9 +427,8 @@ function PhotoCell({ live }: { live: LiveWithPhotoCount }) {
 function PhotoFallback({ label }: { label: string }) {
   return (
     <div
-      className="flex items-center justify-center font-mono text-[10px] tracking-[0.1em] uppercase"
+      className="flex w-full items-center justify-center font-mono text-[10px] tracking-[0.1em] uppercase"
       style={{
-        height: 200,
         aspectRatio: "3/2",
         backgroundColor: "#1a1614",
         backgroundImage:

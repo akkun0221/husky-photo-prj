@@ -8,14 +8,11 @@ type Props = {
 export function MembersRail({ members }: Props) {
   return (
     <section
-      className="px-16 pt-15 pb-15"
-      style={{
-        borderTop: "1px solid var(--memorial-rule)",
-        background: "var(--memorial-bg)",
-      }}
+      className="px-4 pt-10 pb-10 sm:px-16 sm:pt-15 sm:pb-15"
+      style={{ borderTop: "1px solid var(--memorial-rule)" }}
     >
       {/* ヘッダー */}
-      <div className="mb-7 flex items-baseline justify-between">
+      <div className="mb-7 flex flex-col gap-2 sm:flex-row sm:items-baseline sm:justify-between sm:gap-0">
         <div className="flex items-baseline gap-4">
           <span
             className="font-mono text-[10px] tracking-[0.4em] uppercase"
@@ -24,7 +21,7 @@ export function MembersRail({ members }: Props) {
             by member
           </span>
           <h3
-            className="m-0 text-4xl font-normal"
+            className="m-0 text-2xl font-normal sm:text-4xl"
             style={{
               fontFamily: "var(--font-playfair), 'Noto Serif JP', serif",
               fontStyle: "italic",
@@ -44,9 +41,8 @@ export function MembersRail({ members }: Props) {
 
       {/* グリッド */}
       <div
-        className="grid"
+        className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5"
         style={{
-          gridTemplateColumns: "repeat(5, 1fr)",
           gap: 1,
           background: "var(--memorial-rule)",
           border: "1px solid var(--memorial-rule)",
@@ -59,24 +55,24 @@ export function MembersRail({ members }: Props) {
             className="block no-underline transition-opacity hover:opacity-80"
             style={{
               background: "var(--memorial-bg)",
-              padding: 18,
+              padding: 12,
               color: "var(--memorial-fg)",
             }}
           >
             {/* ポートレートエリア */}
-            <div className="relative h-70 w-full overflow-hidden">
+            <div className="relative h-36 w-full overflow-hidden sm:h-52 lg:h-70">
               <MemberPhoto member={m} index={i} />
             </div>
 
             {/* テキスト */}
             <div
-              className="pt-3.5 font-mono text-[10px] tracking-[0.3em] uppercase"
+              className="pt-3 font-mono text-[10px] tracking-[0.3em] uppercase"
               style={{ color: "var(--memorial-sub)" }}
             >
               0{i + 1}
             </div>
             <div
-              className="mt-1 text-2xl leading-tight font-bold"
+              className="mt-1 text-xl leading-tight font-bold sm:text-2xl"
               style={{
                 fontFamily: "var(--font-playfair), 'Noto Serif JP', serif",
                 fontStyle: "italic",
@@ -86,7 +82,7 @@ export function MembersRail({ members }: Props) {
               {m.name}
             </div>
             <div
-              className="mt-2.5 flex items-center justify-between font-mono text-[10px] tracking-[0.25em] uppercase"
+              className="mt-2 flex items-center justify-between font-mono text-[10px] tracking-[0.25em] uppercase"
               style={{ color: "var(--memorial-sub)" }}
             >
               <span>{m.photoCount.toLocaleString()} photos</span>
@@ -108,7 +104,7 @@ function MemberPhoto({
 }) {
   return (
     <div
-      className="absolute inset-0 flex flex-col justify-end p-3"
+      className="absolute inset-0 flex flex-col justify-end p-2 sm:p-3"
       style={{
         backgroundColor: member.color,
         backgroundImage:

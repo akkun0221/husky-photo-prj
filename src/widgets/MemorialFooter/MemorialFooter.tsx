@@ -3,10 +3,10 @@ import Link from "next/link";
 export function MemorialFooter() {
   return (
     <footer
-      className="flex items-center justify-between px-16 py-7 font-mono text-[11px] tracking-[0.3em] uppercase"
+      className="flex flex-col items-center gap-3 px-4 py-5 font-mono text-[11px] tracking-[0.3em] uppercase sm:flex-row sm:justify-between sm:gap-0 sm:px-16 sm:py-7"
       style={{
         borderTop: "1px solid var(--memorial-rule)",
-        background: "var(--memorial-bg)",
+        background: "rgba(10,8,7,0.92)",
         color: "var(--memorial-sub)",
       }}
     >
