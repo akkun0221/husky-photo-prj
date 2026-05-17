@@ -35,7 +35,8 @@ export function MemorialClient({ lives, members }: Props) {
   );
 
   const sorted = useMemo(() => {
-    const asc = [...lives].reverse(); // DB は descending で来るので昇順に直す
+    // DB は descending で来るので昇順に直し、写真があるライブだけに絞る
+    const asc = [...lives].reverse().filter((l) => l.hasPhotos);
     return direction === "forward" ? asc : [...asc].reverse();
   }, [lives, direction]);
 
@@ -44,6 +45,7 @@ export function MemorialClient({ lives, members }: Props) {
   const byYear = useMemo(() => {
     const m: Record<string, number> = {};
     for (const l of lives) {
+      if (!l.hasPhotos) continue;
       const y = l.date.slice(0, 4);
       m[y] = (m[y] ?? 0) + 1;
     }
