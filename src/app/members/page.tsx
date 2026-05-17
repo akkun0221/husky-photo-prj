@@ -17,13 +17,7 @@ export default async function MembersPage() {
   const members = await getMembers();
 
   return (
-    <div
-      style={{
-        background: "var(--memorial-bg)",
-        color: "var(--memorial-fg)",
-        minHeight: "100dvh",
-      }}
-    >
+    <div style={{ minHeight: "100dvh", color: "var(--memorial-fg)" }}>
       <MemorialHeader />
       <main className="px-4 pt-20 pb-24 sm:px-16">
         {/* タイトル */}

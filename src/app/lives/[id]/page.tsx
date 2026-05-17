@@ -50,13 +50,7 @@ export default async function LiveDetailPage({ params }: Props) {
   const weekday = calcWeekday(live.date);
 
   return (
-    <div
-      style={{
-        background: "var(--memorial-bg)",
-        color: "var(--memorial-fg)",
-        minHeight: "100dvh",
-      }}
-    >
+    <div style={{ minHeight: "100dvh", color: "var(--memorial-fg)" }}>
       <MemorialHeader />
       <main className="pb-24">
         {/* ヒーローヘッダー */}

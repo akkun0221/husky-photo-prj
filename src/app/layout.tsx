@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Geist, Playfair_Display, EB_Garamond } from "next/font/google";
 import { QueryProvider } from "@/shared/providers/QueryProvider";
+import { YouTubeBackground } from "@/widgets/YouTubeBackground/YouTubeBackground";
 import "./globals.css";
 
 const geistSans = Geist({
@@ -51,6 +52,7 @@ export default function RootLayout({
       className={`${geistSans.variable} ${playfair.variable} ${ebGaramond.variable} h-full antialiased`}
     >
       <body className="flex min-h-full flex-col">
+        <YouTubeBackground />
         <QueryProvider>{children}</QueryProvider>
       </body>
     </html>

@@ -31,17 +31,11 @@ export default async function LivesPage() {
   const years = [...byYear.keys()].sort((a, b) => Number(b) - Number(a));
 
   return (
-    <div
-      style={{
-        background: "var(--memorial-bg)",
-        color: "var(--memorial-fg)",
-        minHeight: "100dvh",
-      }}
-    >
+    <div style={{ minHeight: "100dvh", color: "var(--memorial-fg)" }}>
       <MemorialHeader />
       <main className="px-4 pt-20 pb-24 sm:px-16">
-        {/* タイトル */}
-        <div className="mb-12 pt-4">
+        {/* タイトル — YouTube が透けて見えるエリア */}
+        <div className="mb-14 pt-4">
           <div
             className="mb-3 font-mono text-[10px] tracking-[0.5em] uppercase"
             style={{ color: "var(--memorial-accent)" }}
@@ -68,62 +62,71 @@ export default async function LivesPage() {
           </div>
         </div>
 
-        {/* 年別リスト */}
-        <div className="space-y-14">
+        {/* 年別リスト — 年ラベルはパネル外、リスト行は半透明パネルで可読性を確保 */}
+        <div className="space-y-12">
           {years.map((year) => (
             <section key={year}>
+              {/* 年ラベル: YouTube が透けて見えるギャップ */}
               <div
-                className="mb-1 font-mono text-[11px] tracking-[0.4em] uppercase"
-                style={{
-                  color: "var(--memorial-accent)",
-                  borderBottom: "1px solid var(--memorial-rule)",
-                  paddingBottom: 8,
-                }}
+                className="mb-2 font-mono text-[11px] tracking-[0.4em] uppercase"
+                style={{ color: "var(--memorial-accent)" }}
               >
                 {year}
               </div>
-              <ul>
-                {byYear.get(year)!.map((live) => (
-                  <li
-                    key={live.id}
-                    style={{ borderBottom: "1px solid var(--memorial-faint)" }}
-                  >
-                    <Link
-                      href={`/lives/${live.id}`}
-                      className="flex items-baseline gap-3 py-4 no-underline transition-opacity hover:opacity-60 sm:gap-6"
-                      style={{ color: "var(--memorial-fg)" }}
+
+              {/* リストパネル: 半透明 + backdrop-blur で動画の上でも読みやすく */}
+              <div
+                style={{
+                  background: "rgba(10,8,7,0.78)",
+                  backdropFilter: "blur(4px)",
+                  border: "1px solid var(--memorial-rule)",
+                }}
+              >
+                <ul>
+                  {byYear.get(year)!.map((live) => (
+                    <li
+                      key={live.id}
+                      style={{
+                        borderBottom: "1px solid var(--memorial-faint)",
+                      }}
                     >
-                      <span
-                        className="w-8 flex-shrink-0 font-mono text-[10px] tracking-[0.2em] uppercase"
-                        style={{ color: "var(--memorial-sub)" }}
+                      <Link
+                        href={`/lives/${live.id}`}
+                        className="flex items-baseline gap-3 px-4 py-4 no-underline transition-colors hover:bg-white/5 sm:gap-6 sm:px-6"
+                        style={{ color: "var(--memorial-fg)" }}
                       >
-                        {calcWeekday(live.date)}
-                      </span>
-                      <span
-                        className="w-24 flex-shrink-0 font-mono text-[11px] tracking-[0.05em]"
-                        style={{ color: "var(--memorial-sub)" }}
-                      >
-                        {live.date}
-                      </span>
-                      <span className="flex-1 text-sm font-medium sm:text-base">
-                        {live.title || live.venue}
-                      </span>
-                      <span
-                        className="hidden flex-shrink-0 font-mono text-[11px] tracking-[0.1em] sm:inline"
-                        style={{ color: "var(--memorial-sub)" }}
-                      >
-                        {live.venue}
-                      </span>
-                      <span
-                        className="flex-shrink-0 font-mono text-[10px] tracking-[0.2em]"
-                        style={{ color: "var(--memorial-accent)" }}
-                      >
-                        →
-                      </span>
-                    </Link>
-                  </li>
-                ))}
-              </ul>
+                        <span
+                          className="w-8 flex-shrink-0 font-mono text-[10px] tracking-[0.2em] uppercase"
+                          style={{ color: "var(--memorial-sub)" }}
+                        >
+                          {calcWeekday(live.date)}
+                        </span>
+                        <span
+                          className="w-24 flex-shrink-0 font-mono text-[11px] tracking-[0.05em]"
+                          style={{ color: "var(--memorial-sub)" }}
+                        >
+                          {live.date}
+                        </span>
+                        <span className="flex-1 text-sm font-medium sm:text-base">
+                          {live.title || live.venue}
+                        </span>
+                        <span
+                          className="hidden flex-shrink-0 font-mono text-[11px] tracking-[0.1em] sm:inline"
+                          style={{ color: "var(--memorial-sub)" }}
+                        >
+                          {live.venue}
+                        </span>
+                        <span
+                          className="flex-shrink-0 font-mono text-[10px] tracking-[0.2em]"
+                          style={{ color: "var(--memorial-accent)" }}
+                        >
+                          →
+                        </span>
+                      </Link>
+                    </li>
+                  ))}
+                </ul>
+              </div>
             </section>
           ))}
         </div>
