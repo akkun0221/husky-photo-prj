@@ -74,59 +74,48 @@ export default async function LivesPage() {
                 {year}
               </div>
 
-              {/* リストパネル: 半透明 + backdrop-blur で動画の上でも読みやすく */}
-              <div
-                style={{
-                  background: "rgba(10,8,7,0.78)",
-                  backdropFilter: "blur(4px)",
-                  border: "1px solid var(--memorial-rule)",
-                }}
-              >
-                <ul>
-                  {byYear.get(year)!.map((live) => (
-                    <li
-                      key={live.id}
-                      style={{
-                        borderBottom: "1px solid var(--memorial-faint)",
-                      }}
+              <ul style={{ borderTop: "1px solid var(--memorial-rule)" }}>
+                {byYear.get(year)!.map((live) => (
+                  <li
+                    key={live.id}
+                    style={{ borderBottom: "1px solid var(--memorial-faint)" }}
+                  >
+                    <Link
+                      href={`/lives/${live.id}`}
+                      className="flex items-baseline gap-3 px-0 py-4 no-underline transition-opacity hover:opacity-60 sm:gap-6"
+                      style={{ color: "var(--memorial-fg)" }}
                     >
-                      <Link
-                        href={`/lives/${live.id}`}
-                        className="flex items-baseline gap-3 px-4 py-4 no-underline transition-colors hover:bg-white/5 sm:gap-6 sm:px-6"
-                        style={{ color: "var(--memorial-fg)" }}
+                      <span
+                        className="w-8 flex-shrink-0 font-mono text-[10px] tracking-[0.2em] uppercase"
+                        style={{ color: "var(--memorial-sub)" }}
                       >
-                        <span
-                          className="w-8 flex-shrink-0 font-mono text-[10px] tracking-[0.2em] uppercase"
-                          style={{ color: "var(--memorial-sub)" }}
-                        >
-                          {calcWeekday(live.date)}
-                        </span>
-                        <span
-                          className="w-24 flex-shrink-0 font-mono text-[11px] tracking-[0.05em]"
-                          style={{ color: "var(--memorial-sub)" }}
-                        >
-                          {live.date}
-                        </span>
-                        <span className="flex-1 text-sm font-medium sm:text-base">
-                          {live.title || live.venue}
-                        </span>
-                        <span
-                          className="hidden flex-shrink-0 font-mono text-[11px] tracking-[0.1em] sm:inline"
-                          style={{ color: "var(--memorial-sub)" }}
-                        >
-                          {live.venue}
-                        </span>
-                        <span
-                          className="flex-shrink-0 font-mono text-[10px] tracking-[0.2em]"
-                          style={{ color: "var(--memorial-accent)" }}
-                        >
-                          →
-                        </span>
-                      </Link>
-                    </li>
-                  ))}
-                </ul>
-              </div>
+                        {calcWeekday(live.date)}
+                      </span>
+                      <span
+                        className="w-24 flex-shrink-0 font-mono text-[11px] tracking-[0.05em]"
+                        style={{ color: "var(--memorial-sub)" }}
+                      >
+                        {live.date}
+                      </span>
+                      <span className="flex-1 text-sm font-medium sm:text-base">
+                        {live.title || live.venue}
+                      </span>
+                      <span
+                        className="hidden flex-shrink-0 font-mono text-[11px] tracking-[0.1em] sm:inline"
+                        style={{ color: "var(--memorial-sub)" }}
+                      >
+                        {live.venue}
+                      </span>
+                      <span
+                        className="flex-shrink-0 font-mono text-[10px] tracking-[0.2em]"
+                        style={{ color: "var(--memorial-accent)" }}
+                      >
+                        →
+                      </span>
+                    </Link>
+                  </li>
+                ))}
+              </ul>
             </section>
           ))}
         </div>
