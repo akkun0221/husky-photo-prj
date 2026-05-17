@@ -402,13 +402,11 @@ export function MemorialClient({ lives, members }: Props) {
 
 function LivePhotoSlideshow({ live }: { live: LiveWithPhotoCount }) {
   const [index, setIndex] = useState(0);
-  const [fade, setFade] = useState(true);
   const containerRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     if (live.photoUrls.length <= 1) return;
     let inView = false;
-    let swapTimeout: ReturnType<typeof setTimeout> | undefined;
 
     const observer = new IntersectionObserver(
       ([e]) => {
@@ -420,36 +418,18 @@ function LivePhotoSlideshow({ live }: { live: LiveWithPhotoCount }) {
 
     const id = setInterval(() => {
       if (!inView) return;
-      setFade(false);
-      swapTimeout = setTimeout(() => {
-        setIndex((i) => (i + 1) % live.photoUrls.length);
-        setFade(true);
-      }, 500);
+      // src は変えず opacity だけを切り替えるのでフラッシュなし
+      setIndex((i) => (i + 1) % live.photoUrls.length);
     }, 3000);
 
     return () => {
       clearInterval(id);
-      clearTimeout(swapTimeout);
       observer.disconnect();
     };
   }, [live.photoUrls.length]);
 
   if (!live.photoUrls.length) {
-    return (
-      <div
-        className="flex w-full items-center justify-center font-mono text-[10px] tracking-[0.1em] uppercase"
-        style={{
-          aspectRatio: "3/2",
-          backgroundColor: "#1a1614",
-          backgroundImage:
-            "repeating-linear-gradient(135deg, transparent 0 14px, rgba(255,255,255,.035) 14px 15px)",
-          color: "rgba(255,255,255,.45)",
-          boxShadow: "0 12px 30px rgba(0,0,0,0.4)",
-        }}
-      >
-        [ {live.venue} {live.date} ]
-      </div>
-    );
+    return <ComingSoon label={`${live.venue} ${live.date}`} />;
   }
 
   return (
@@ -461,17 +441,58 @@ function LivePhotoSlideshow({ live }: { live: LiveWithPhotoCount }) {
         boxShadow: "0 12px 30px rgba(0,0,0,0.4)",
       }}
     >
+      {live.photoUrls.map((url, i) => (
+        <Image
+          key={i}
+          src={url}
+          alt={i === 0 ? `${live.venue} - ${live.date}` : ""}
+          fill
+          className="object-cover"
+          style={{
+            opacity: i === index ? 1 : 0,
+            transition: "opacity 0.6s ease",
+          }}
+          sizes="(max-width: 640px) 100vw, 33vw"
+        />
+      ))}
+    </div>
+  );
+}
+
+function ComingSoon({ label }: { label: string }) {
+  return (
+    <div
+      className="relative w-full overflow-hidden"
+      style={{
+        aspectRatio: "3/2",
+        boxShadow: "0 12px 30px rgba(0,0,0,0.4)",
+      }}
+    >
       <Image
-        src={live.photoUrls[index]}
-        alt={`${live.venue} - ${live.date}`}
+        src="/comingsoon.jpeg"
+        alt="Coming Soon"
         fill
         className="object-cover"
-        style={{
-          opacity: fade ? 1 : 0,
-          transition: "opacity 0.5s ease",
-        }}
+        style={{ opacity: 0.4 }}
         sizes="(max-width: 640px) 100vw, 33vw"
       />
+      <div
+        className="absolute inset-0 flex items-center justify-center"
+        style={{ background: "rgba(10,8,7,0.35)" }}
+      >
+        <span
+          className="font-mono text-[11px] tracking-[0.3em] uppercase"
+          style={{ color: "rgba(236,230,216,0.75)" }}
+        >
+          Coming Soon...?
+        </span>
+      </div>
+      <div
+        className="absolute right-3 bottom-2 font-mono text-[9px] tracking-[0.15em] uppercase opacity-40"
+        style={{ color: "rgba(236,230,216,0.6)" }}
+      >
+        {label}
+      </div>
     </div>
   );
 }

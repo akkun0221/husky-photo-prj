@@ -1,32 +1,49 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import Image from "next/image";
 
 type Photo = { url: string; label: string };
 
 export function PhotoSlideshow({ photos }: { photos: Photo[] }) {
-  const [index, setIndex] = useState(0);
-  const [visible, setVisible] = useState(true);
+  // ダブルバッファ: A/B スロットを交互に使い、非表示側を先に差し替えてからクロスフェード
+  const [slotA, setSlotA] = useState(photos[0] ?? { url: "", label: "" });
+  const [slotB, setSlotB] = useState(
+    photos[1] ?? photos[0] ?? { url: "", label: "" },
+  );
+  const [showA, setShowA] = useState(true);
+  const idxRef = useRef(0);
+  const showARef = useRef(true);
 
   useEffect(() => {
     if (photos.length <= 1) return;
-    let swapTimeout: ReturnType<typeof setTimeout> | undefined;
+    let switchTimer: ReturnType<typeof setTimeout> | undefined;
+
     const id = setInterval(() => {
-      setVisible(false);
-      swapTimeout = setTimeout(() => {
-        setIndex((i) => (i + 1) % photos.length);
-        setVisible(true);
-      }, 600);
+      idxRef.current = (idxRef.current + 1) % photos.length;
+      const next = photos[idxRef.current];
+
+      // 非表示スロットの src を先に更新してプリロード
+      if (showARef.current) {
+        setSlotB(next);
+      } else {
+        setSlotA(next);
+      }
+
+      // ブラウザが新 src を受け取った後にクロスフェード開始
+      switchTimer = setTimeout(() => {
+        showARef.current = !showARef.current;
+        setShowA((prev) => !prev);
+      }, 50);
     }, 3600);
+
     return () => {
       clearInterval(id);
-      clearTimeout(swapTimeout);
+      clearTimeout(switchTimer);
     };
-  }, [photos.length]);
+  }, [photos]);
 
   if (!photos.length) return null;
-  const photo = photos[index];
 
   return (
     <section
@@ -38,17 +55,32 @@ export function PhotoSlideshow({ photos }: { photos: Photo[] }) {
         borderTop: "1px solid var(--memorial-rule)",
       }}
     >
-      <Image
-        src={photo.url}
-        alt={photo.label}
-        fill
-        className="object-cover"
-        style={{
-          opacity: visible ? 0.65 : 0,
-          transition: "opacity 0.6s ease",
-        }}
-        sizes="100vw"
-      />
+      {slotA.url && (
+        <Image
+          src={slotA.url}
+          alt={slotA.label}
+          fill
+          className="object-cover"
+          style={{
+            opacity: showA ? 0.65 : 0,
+            transition: "opacity 0.6s ease",
+          }}
+          sizes="100vw"
+        />
+      )}
+      {slotB.url && (
+        <Image
+          src={slotB.url}
+          alt={slotB.label}
+          fill
+          className="object-cover"
+          style={{
+            opacity: showA ? 0 : 0.65,
+            transition: "opacity 0.6s ease",
+          }}
+          sizes="100vw"
+        />
+      )}
       <div
         className="pointer-events-none absolute inset-0"
         style={{
@@ -58,13 +90,9 @@ export function PhotoSlideshow({ photos }: { photos: Photo[] }) {
       />
       <div
         className="absolute right-5 bottom-4 font-mono text-[10px] tracking-[0.3em] uppercase"
-        style={{
-          color: "var(--memorial-sub)",
-          opacity: visible ? 1 : 0,
-          transition: "opacity 0.6s ease",
-        }}
+        style={{ color: "var(--memorial-sub)" }}
       >
-        {photo.label}
+        {showA ? slotA.label : slotB.label}
       </div>
     </section>
   );
