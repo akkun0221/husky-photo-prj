@@ -41,8 +41,10 @@ export function OpeningMonument({ showCount, photoCount, voiceCount }: Props) {
           style={{ color: "var(--memorial-sub)", lineHeight: 2, fontSize: 15 }}
         >
           2022年12月10日、池袋SOUND PEACEで、はじめて husky を撮りました。
+          <br />
           そこから 2026年4月27日の解散ライブまで、{showCount}{" "}
           公演を追いかけた記録です。
+          <br />
           まったりアップロードしていくのでゆるりと見てください。
         </p>
 
