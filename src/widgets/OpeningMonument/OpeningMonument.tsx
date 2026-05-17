@@ -40,10 +40,10 @@ export function OpeningMonument({ showCount, photoCount, voiceCount }: Props) {
           className="mx-auto mt-8 max-w-xl px-2 text-sm leading-loose sm:px-0"
           style={{ color: "var(--memorial-sub)", lineHeight: 2, fontSize: 15 }}
         >
-          2022年12月10日、秋葉原のライブハウスで、はじめて husky を撮りました。
+          2022年12月10日、池袋SOUND PEACEで、はじめて husky を撮りました。
           そこから 2026年4月27日の解散ライブまで、{showCount}{" "}
           公演を追いかけた記録です。
-          ここから入って、自分のペースで日付のあいだを歩いてみてください。
+          まったりアップロードしていくのでゆるりと見てください。
         </p>
 
         {/* 統計数値 */}
