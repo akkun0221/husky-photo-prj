@@ -54,7 +54,7 @@ export function MemorialClient({ lives, members }: Props) {
     <>
       {/* ── Sticky Jump Bar ── */}
       <div
-        className="sticky top-0 z-10 flex flex-nowrap items-center gap-4 overflow-x-auto px-4 py-3.5 sm:gap-6 sm:px-10"
+        className="sticky top-0 z-10"
         style={{
           background: "rgba(10,8,7,0.88)",
           backdropFilter: "blur(14px)",
@@ -62,128 +62,154 @@ export function MemorialClient({ lives, members }: Props) {
           borderBottom: "1px solid var(--memorial-rule)",
         }}
       >
-        {/* direction toggle */}
-        <div className="flex flex-shrink-0 items-center gap-2">
-          <span
-            className="hidden font-mono text-[10px] tracking-[0.3em] uppercase sm:inline"
-            style={{ color: "var(--memorial-sub)" }}
-          >
-            direction
-          </span>
-          <div
-            className="flex"
-            style={{ border: "1px solid var(--memorial-rule)" }}
-          >
-            {(
-              [
-                ["forward", "▶ 追体験", "2022→2026"],
-                ["reverse", "◀ 振り返り", "2026→2022"],
-              ] as const
-            ).map(([key, label, sub]) => (
-              <button
-                key={key}
-                onClick={() => handleToggle(key)}
-                className="flex flex-shrink-0 cursor-pointer items-center gap-1.5 border-none px-3 py-1.5 text-[11px] font-semibold transition-colors"
-                style={{
-                  background:
-                    direction === key
-                      ? "var(--memorial-accent)"
-                      : "transparent",
-                  color: direction === key ? "#fff" : "var(--memorial-fg)",
-                  fontFamily: "inherit",
-                }}
-              >
-                <span>{label}</span>
-                <span className="hidden font-mono text-[9px] tracking-[0.1em] opacity-55 sm:inline">
-                  {sub}
-                </span>
-              </button>
-            ))}
-          </div>
-        </div>
-
-        <div
-          className="h-6 w-px flex-shrink-0"
-          style={{ background: "var(--memorial-rule)" }}
-        />
-
-        {/* 年 pills */}
-        <div className="flex flex-shrink-0 items-center gap-2">
-          <span
-            className="hidden font-mono text-[10px] tracking-[0.3em] uppercase sm:inline"
-            style={{ color: "var(--memorial-sub)" }}
-          >
-            jump to year
-          </span>
-          <div className="flex gap-1">
-            {years.map((y) => (
-              <a
-                key={y}
-                href={`#y${y}`}
-                className="inline-flex items-baseline gap-1 px-2 py-1.5 font-mono text-[11px] font-semibold tracking-[0.05em] no-underline transition-opacity hover:opacity-70 sm:gap-1.5 sm:px-3"
-                style={{
-                  border: "1px solid var(--memorial-rule)",
-                  color: "var(--memorial-fg)",
-                }}
-              >
-                {y}
-                <span
-                  className="text-[9px] tracking-[0.1em]"
-                  style={{ color: "var(--memorial-sub)" }}
+        {/* 1行目: 方向トグル + 年ピル（全デバイス）/ メンバー + ヒント（デスクトップのみ） */}
+        <div className="flex items-center gap-3 px-4 py-2.5 sm:gap-6 sm:px-10 sm:py-3.5">
+          {/* direction toggle */}
+          <div className="flex flex-shrink-0 items-center gap-2">
+            <span
+              className="hidden font-mono text-[10px] tracking-[0.3em] uppercase sm:inline"
+              style={{ color: "var(--memorial-sub)" }}
+            >
+              direction
+            </span>
+            <div
+              className="flex"
+              style={{ border: "1px solid var(--memorial-rule)" }}
+            >
+              {(
+                [
+                  ["forward", "▶ 追体験", "2022→2026"],
+                  ["reverse", "◀ 振り返り", "2026→2022"],
+                ] as const
+              ).map(([key, label, sub]) => (
+                <button
+                  key={key}
+                  onClick={() => handleToggle(key)}
+                  className="flex flex-shrink-0 cursor-pointer items-center gap-1.5 border-none px-3 py-1.5 text-[11px] font-semibold transition-colors"
+                  style={{
+                    background:
+                      direction === key
+                        ? "var(--memorial-accent)"
+                        : "transparent",
+                    color: direction === key ? "#fff" : "var(--memorial-fg)",
+                    fontFamily: "inherit",
+                  }}
                 >
-                  {byYear[y] ?? 0}
-                </span>
-              </a>
-            ))}
+                  <span>{label}</span>
+                  <span className="hidden font-mono text-[9px] tracking-[0.1em] opacity-55 sm:inline">
+                    {sub}
+                  </span>
+                </button>
+              ))}
+            </div>
           </div>
-        </div>
 
-        <div
-          className="h-6 w-px flex-shrink-0"
-          style={{ background: "var(--memorial-rule)" }}
-        />
+          <div
+            className="h-6 w-px flex-shrink-0"
+            style={{ background: "var(--memorial-rule)" }}
+          />
 
-        {/* member shortcuts */}
-        <div className="flex flex-shrink-0 items-center gap-2">
+          {/* 年 pills */}
+          <div className="flex flex-shrink-0 items-center gap-2">
+            <span
+              className="hidden font-mono text-[10px] tracking-[0.3em] uppercase sm:inline"
+              style={{ color: "var(--memorial-sub)" }}
+            >
+              jump to year
+            </span>
+            <div className="flex gap-1">
+              {years.map((y) => (
+                <a
+                  key={y}
+                  href={`#y${y}`}
+                  className="inline-flex items-baseline gap-0.5 px-2 py-1 font-mono text-[11px] font-semibold tracking-[0.05em] no-underline transition-opacity hover:opacity-70 sm:gap-1.5 sm:px-3 sm:py-1.5"
+                  style={{
+                    border: "1px solid var(--memorial-rule)",
+                    color: "var(--memorial-fg)",
+                  }}
+                >
+                  {y}
+                  <span
+                    className="hidden text-[9px] tracking-[0.1em] sm:inline"
+                    style={{ color: "var(--memorial-sub)" }}
+                  >
+                    {byYear[y] ?? 0}
+                  </span>
+                </a>
+              ))}
+            </div>
+          </div>
+
+          {/* デスクトップのみ: セパレーター + メンバーショートカット + ヒント */}
+          <div
+            className="hidden h-6 w-px flex-shrink-0 sm:block"
+            style={{ background: "var(--memorial-rule)" }}
+          />
+          <div className="hidden flex-shrink-0 items-center gap-2 sm:flex">
+            <span
+              className="font-mono text-[10px] tracking-[0.3em] uppercase"
+              style={{ color: "var(--memorial-sub)" }}
+            >
+              by member
+            </span>
+            <div className="flex gap-1">
+              {members.map((m) => (
+                <a
+                  key={m.id}
+                  href={`/members?member=${m.id}`}
+                  className="flex flex-shrink-0 cursor-pointer items-center gap-1.5 py-1 pr-2 pl-1 no-underline transition-opacity hover:opacity-70"
+                  style={{
+                    border: "1px solid var(--memorial-rule)",
+                    color: "var(--memorial-fg)",
+                  }}
+                >
+                  <div
+                    className="h-6 w-6 flex-shrink-0"
+                    style={{ background: m.color }}
+                  />
+                  <span
+                    className="font-mono text-[10px] font-semibold tracking-[0.15em]"
+                    style={{ color: "var(--memorial-fg)" }}
+                  >
+                    {m.name}
+                  </span>
+                </a>
+              ))}
+            </div>
+          </div>
+          <div className="hidden flex-1 sm:block" />
           <span
-            className="hidden font-mono text-[10px] tracking-[0.3em] uppercase sm:inline"
+            className="hidden flex-shrink-0 font-mono text-[10px] tracking-[0.3em] uppercase sm:inline"
             style={{ color: "var(--memorial-sub)" }}
           >
-            by member
+            ↓ scroll to walk through
           </span>
-          <div className="flex gap-1">
+        </div>
+        {/* end 1行目 */}
+
+        {/* 2行目: スマホのみ - メンバーカラースウォッチ */}
+        <div
+          className="flex items-center gap-3 px-4 py-2 sm:hidden"
+          style={{ borderTop: "1px solid var(--memorial-rule)" }}
+        >
+          <span
+            className="flex-shrink-0 font-mono text-[9px] tracking-[0.25em] uppercase"
+            style={{ color: "var(--memorial-sub)" }}
+          >
+            member
+          </span>
+          <div className="flex gap-1.5">
             {members.map((m) => (
               <a
                 key={m.id}
                 href={`/members?member=${m.id}`}
-                className="flex flex-shrink-0 cursor-pointer items-center gap-1.5 py-1 pr-2 pl-1 no-underline transition-opacity hover:opacity-70"
-                style={{
-                  border: "1px solid var(--memorial-rule)",
-                  color: "var(--memorial-fg)",
-                }}
-              >
-                <div
-                  className="h-5 w-5 flex-shrink-0 sm:h-6 sm:w-6"
-                  style={{ background: m.color }}
-                />
-                <span
-                  className="hidden font-mono text-[10px] font-semibold tracking-[0.15em] sm:inline"
-                  style={{ color: "var(--memorial-fg)" }}
-                >
-                  {m.name}
-                </span>
-              </a>
+                className="block h-7 w-7 flex-shrink-0 transition-opacity hover:opacity-70"
+                style={{ background: m.color }}
+                title={m.name}
+              />
             ))}
           </div>
         </div>
-
-        <div className="hidden flex-1 sm:block" />
-        <span
-          className="hidden flex-shrink-0 font-mono text-[10px] tracking-[0.3em] uppercase sm:inline"
-          style={{ color: "var(--memorial-sub)" }}
-        >
-          ↓ scroll to walk through
-        </span>
       </div>
 
       {/* ── Memorial Timeline ── */}
