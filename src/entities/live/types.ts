@@ -9,5 +9,12 @@ export type Live = {
 
 export type LiveWithPhotoFlag = Live & { hasPhotos: boolean };
 
+export type LiveWithPhotoCount = Live & {
+  hasPhotos: boolean;
+  photoCount: number;
+  weekday: string;
+  thumbnailUrl: string | null;
+};
+
 export type CreateLiveInput = Omit<Live, "id">;
 export type UpdateLiveInput = Partial<CreateLiveInput>;

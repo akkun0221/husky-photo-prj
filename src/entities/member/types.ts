@@ -3,3 +3,7 @@ export type Member = {
   name: string;
   color: string;
 };
+
+export type MemberWithPhotoCount = Member & {
+  photoCount: number;
+};

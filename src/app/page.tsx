@@ -1,46 +1,35 @@
 export const revalidate = false;
 
-import { getLivesWithPhotoFlag } from "@/entities/live/api";
-import { Header } from "@/widgets/Header/Header";
-import { Footer } from "@/widgets/Footer/Footer";
-import { LiveCalendar } from "@/widgets/LiveCalendar/LiveCalendar";
+import { Suspense } from "react";
+import { getLivesWithPhotoCount } from "@/entities/live/api";
+import { getMembersWithPhotoCount } from "@/entities/member/api";
+import { MemorialHeader } from "@/widgets/MemorialHeader/MemorialHeader";
+import { OpeningMonument } from "@/widgets/OpeningMonument/OpeningMonument";
+import { MemorialClient } from "@/widgets/MemorialClient/MemorialClient";
+import { MembersRail } from "@/widgets/MembersRail/MembersRail";
+import { MemorialFooter } from "@/widgets/MemorialFooter/MemorialFooter";
 
 export default async function HomePage() {
-  const lives = await getLivesWithPhotoFlag();
+  const [lives, members] = await Promise.all([
+    getLivesWithPhotoCount(),
+    getMembersWithPhotoCount(),
+  ]);
+
+  const totalPhotos = lives.reduce((sum, l) => sum + l.photoCount, 0);
 
   return (
-    <>
-      <Header />
-      <main className="space-y-12 py-8">
-        {/* ダイジェストMV */}
-        <section>
-          <div className="mx-auto mb-3 max-w-5xl px-4">
-            <p className="text-xs text-zinc-400">2026.04.27 BIGCAT</p>
-            <h2 className="text-lg font-semibold">
-              husky 解散ワンマンライブ　ダイジェストMV
-            </h2>
-            <p className="text-sm text-zinc-400">最後の新曲　『ECHO』</p>
-          </div>
-          <div className="mx-auto max-w-5xl px-4">
-            <div className="relative aspect-video">
-              <iframe
-                src="https://www.youtube.com/embed/08JiOyg4moY"
-                title="husky 解散ワンマンライブ ダイジェストMV 最後の新曲 ECHO"
-                className="absolute inset-0 h-full w-full rounded-lg"
-                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                allowFullScreen
-              />
-            </div>
-          </div>
-        </section>
-
-        {/* カレンダー */}
-        <section className="mx-auto max-w-5xl px-4">
-          <h2 className="mb-3 text-lg font-semibold">ライブカレンダー</h2>
-          <LiveCalendar lives={lives} />
-        </section>
-      </main>
-      <Footer />
-    </>
+    <div style={{ background: "var(--memorial-bg)", minHeight: "100dvh" }}>
+      <MemorialHeader />
+      <OpeningMonument
+        showCount={lives.length}
+        photoCount={totalPhotos}
+        voiceCount={members.length}
+      />
+      <Suspense>
+        <MemorialClient lives={lives} members={members} />
+      </Suspense>
+      <MembersRail members={members} />
+      <MemorialFooter />
+    </div>
   );
 }

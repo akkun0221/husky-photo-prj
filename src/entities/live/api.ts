@@ -3,9 +3,17 @@ import { createAdminClient } from "@/shared/lib/supabase/admin";
 import type {
   Live,
   LiveWithPhotoFlag,
+  LiveWithPhotoCount,
   CreateLiveInput,
   UpdateLiveInput,
 } from "./types";
+
+const WEEKDAYS = ["SUN", "MON", "TUE", "WED", "THU", "FRI", "SAT"] as const;
+
+function calcWeekday(dateStr: string): string {
+  const [y, m, d] = dateStr.split(".").map(Number);
+  return WEEKDAYS[new Date(y, m - 1, d).getDay()];
+}
 
 export async function getLives(): Promise<Live[]> {
   const supabase = createClient();
@@ -39,6 +47,43 @@ export async function getLivesWithPhotoFlag(): Promise<LiveWithPhotoFlag[]> {
     ...live,
     hasPhotos: liveIdsWithPhotos.has(live.id),
   }));
+}
+
+export async function getLivesWithPhotoCount(): Promise<LiveWithPhotoCount[]> {
+  const supabase = createClient();
+  const [
+    { data: lives, error: livesError },
+    { data: photos, error: photosError },
+  ] = await Promise.all([
+    supabase
+      .from("lives")
+      .select("*")
+      .is("deleted_at", null)
+      .order("date", { ascending: false }),
+    supabase.from("photos").select("id, live_id, r2_url").limit(10000),
+  ]);
+  if (livesError) throw new Error(livesError.message);
+  if (photosError) throw new Error(photosError.message);
+
+  const countByLive = new Map<string, number>();
+  const urlById = new Map<string, string>();
+  for (const p of photos ?? []) {
+    countByLive.set(p.live_id, (countByLive.get(p.live_id) ?? 0) + 1);
+    urlById.set(p.id, p.r2_url);
+  }
+
+  return (lives ?? []).map((live) => {
+    const count = countByLive.get(live.id) ?? 0;
+    return {
+      ...live,
+      hasPhotos: count > 0,
+      photoCount: count,
+      weekday: calcWeekday(live.date),
+      thumbnailUrl: live.thumbnail_photo_id
+        ? (urlById.get(live.thumbnail_photo_id) ?? null)
+        : null,
+    };
+  });
 }
 
 export async function getLivesAdmin(): Promise<LiveWithPhotoFlag[]> {
