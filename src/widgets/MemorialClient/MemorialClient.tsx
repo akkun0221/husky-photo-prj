@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useMemo } from "react";
+import { useCallback, useMemo, useState, useEffect, useRef } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import Image from "next/image";
 import type { LiveWithPhotoCount } from "@/entities/live/types";
@@ -253,7 +253,7 @@ export function MemorialClient({ lives, members }: Props) {
                     className="block no-underline transition-opacity hover:opacity-75"
                     style={{ color: "var(--memorial-fg)" }}
                   >
-                    <PhotoCell live={live} />
+                    <LivePhotoSlideshow live={live} />
                     <div className="mt-3">
                       <div
                         className="font-mono text-[10px] tracking-[0.3em] uppercase"
@@ -374,7 +374,7 @@ export function MemorialClient({ lives, members }: Props) {
                       paddingRight: isLeft ? 0 : 32,
                     }}
                   >
-                    <PhotoCell live={live} />
+                    <LivePhotoSlideshow live={live} />
                   </div>
                 </div>
               </div>
@@ -400,13 +400,61 @@ export function MemorialClient({ lives, members }: Props) {
   );
 }
 
-function PhotoCell({ live }: { live: LiveWithPhotoCount }) {
-  if (!live.thumbnailUrl) {
-    return <PhotoFallback label={`${live.venue} ${live.date}`} />;
+function LivePhotoSlideshow({ live }: { live: LiveWithPhotoCount }) {
+  const [index, setIndex] = useState(0);
+  const [fade, setFade] = useState(true);
+  const containerRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (live.photoUrls.length <= 1) return;
+    let inView = false;
+    let swapTimeout: ReturnType<typeof setTimeout> | undefined;
+
+    const observer = new IntersectionObserver(
+      ([e]) => {
+        inView = e.isIntersecting;
+      },
+      { threshold: 0.1 },
+    );
+    if (containerRef.current) observer.observe(containerRef.current);
+
+    const id = setInterval(() => {
+      if (!inView) return;
+      setFade(false);
+      swapTimeout = setTimeout(() => {
+        setIndex((i) => (i + 1) % live.photoUrls.length);
+        setFade(true);
+      }, 500);
+    }, 3000);
+
+    return () => {
+      clearInterval(id);
+      clearTimeout(swapTimeout);
+      observer.disconnect();
+    };
+  }, [live.photoUrls.length]);
+
+  if (!live.photoUrls.length) {
+    return (
+      <div
+        className="flex w-full items-center justify-center font-mono text-[10px] tracking-[0.1em] uppercase"
+        style={{
+          aspectRatio: "3/2",
+          backgroundColor: "#1a1614",
+          backgroundImage:
+            "repeating-linear-gradient(135deg, transparent 0 14px, rgba(255,255,255,.035) 14px 15px)",
+          color: "rgba(255,255,255,.45)",
+          boxShadow: "0 12px 30px rgba(0,0,0,0.4)",
+        }}
+      >
+        [ {live.venue} {live.date} ]
+      </div>
+    );
   }
 
   return (
     <div
+      ref={containerRef}
       className="relative w-full overflow-hidden"
       style={{
         aspectRatio: "3/2",
@@ -414,30 +462,16 @@ function PhotoCell({ live }: { live: LiveWithPhotoCount }) {
       }}
     >
       <Image
-        src={live.thumbnailUrl}
+        src={live.photoUrls[index]}
         alt={`${live.venue} - ${live.date}`}
         fill
         className="object-cover"
+        style={{
+          opacity: fade ? 1 : 0,
+          transition: "opacity 0.5s ease",
+        }}
         sizes="(max-width: 640px) 100vw, 33vw"
       />
-    </div>
-  );
-}
-
-function PhotoFallback({ label }: { label: string }) {
-  return (
-    <div
-      className="flex w-full items-center justify-center font-mono text-[10px] tracking-[0.1em] uppercase"
-      style={{
-        aspectRatio: "3/2",
-        backgroundColor: "#1a1614",
-        backgroundImage:
-          "repeating-linear-gradient(135deg, transparent 0 14px, rgba(255,255,255,.035) 14px 15px)",
-        color: "rgba(255,255,255,.45)",
-        boxShadow: "0 12px 30px rgba(0,0,0,0.4)",
-      }}
-    >
-      [ {label} ]
     </div>
   );
 }

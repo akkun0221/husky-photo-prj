@@ -14,6 +14,7 @@ export type LiveWithPhotoCount = Live & {
   photoCount: number;
   weekday: string;
   thumbnailUrl: string | null;
+  photoUrls: string[];
 };
 
 export type CreateLiveInput = Omit<Live, "id">;

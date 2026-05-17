@@ -65,11 +65,18 @@ export async function getLivesWithPhotoCount(): Promise<LiveWithPhotoCount[]> {
   if (livesError) throw new Error(livesError.message);
   if (photosError) throw new Error(photosError.message);
 
+  const SLIDESHOW_PER_LIVE = 5;
   const countByLive = new Map<string, number>();
   const urlById = new Map<string, string>();
+  const urlsByLive = new Map<string, string[]>();
   for (const p of photos ?? []) {
     countByLive.set(p.live_id, (countByLive.get(p.live_id) ?? 0) + 1);
     urlById.set(p.id, p.r2_url);
+    const arr = urlsByLive.get(p.live_id) ?? [];
+    if (arr.length < SLIDESHOW_PER_LIVE) {
+      arr.push(p.r2_url);
+      urlsByLive.set(p.live_id, arr);
+    }
   }
 
   return (lives ?? []).map((live) => {
@@ -82,6 +89,7 @@ export async function getLivesWithPhotoCount(): Promise<LiveWithPhotoCount[]> {
       thumbnailUrl: live.thumbnail_photo_id
         ? (urlById.get(live.thumbnail_photo_id) ?? null)
         : null,
+      photoUrls: urlsByLive.get(live.id) ?? [],
     };
   });
 }
