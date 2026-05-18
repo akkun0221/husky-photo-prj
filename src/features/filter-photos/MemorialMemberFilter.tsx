@@ -51,6 +51,7 @@ export function MemorialMemberFilter({ members }: Props) {
           color: current === ALL_VALUE ? "#fff" : "var(--memorial-fg)",
           cursor: "pointer",
           fontFamily: "inherit",
+          touchAction: "manipulation",
         }}
       >
         全て
@@ -74,6 +75,7 @@ export function MemorialMemberFilter({ members }: Props) {
               current === m.id ? "var(--memorial-fg)" : "var(--memorial-sub)",
             cursor: "pointer",
             fontFamily: "inherit",
+            touchAction: "manipulation",
           }}
         >
           <span
