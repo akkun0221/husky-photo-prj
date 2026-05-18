@@ -31,13 +31,7 @@ export default async function LivesPage() {
   const years = [...byYear.keys()].sort((a, b) => Number(b) - Number(a));
 
   return (
-    <div
-      style={{
-        minHeight: "100dvh",
-        color: "var(--memorial-fg)",
-        background: "var(--memorial-bg)",
-      }}
-    >
+    <div>
       <MemorialHeader />
       <main className="px-4 pt-20 pb-24 sm:px-16">
         {/* タイトル — YouTube が透けて見えるエリア */}

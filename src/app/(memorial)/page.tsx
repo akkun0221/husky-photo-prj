@@ -24,13 +24,7 @@ export default async function HomePage() {
     .map((l) => ({ url: l.thumbnailUrl!, label: `${l.date} · ${l.venue}` }));
 
   return (
-    <div
-      style={{
-        minHeight: "100dvh",
-        position: "relative",
-        background: "var(--memorial-bg)",
-      }}
-    >
+    <div style={{ position: "relative" }}>
       <MemorialHeader />
       <OpeningMonument
         showCount={livesWithPhotosCount}
