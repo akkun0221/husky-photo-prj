@@ -1,10 +1,14 @@
 "use client";
 
+import { useCallback } from "react";
 import { useSearchParams } from "next/navigation";
-import { useQuery } from "@tanstack/react-query";
+import { useInfiniteQuery } from "@tanstack/react-query";
+import { useIntersectionObserver } from "@/shared/hooks/useIntersectionObserver";
 import { PhotoListProvider } from "@/entities/photo/PhotoListContext";
 import { PhotoGrid } from "@/widgets/PhotoGrid/PhotoGrid";
 import type { PhotosGroupedByLive } from "@/entities/photo/api";
+
+type PageResult = { groups: PhotosGroupedByLive[]; hasMore: boolean };
 
 const WEEKDAYS = ["SUN", "MON", "TUE", "WED", "THU", "FRI", "SAT"] as const;
 
@@ -17,15 +21,30 @@ export function MemberPhotoFeed() {
   const searchParams = useSearchParams();
   const memberId = searchParams.get("member");
 
-  const { data: groups = [], isLoading } = useQuery<PhotosGroupedByLive[]>({
-    queryKey: ["member-photo-feed", memberId],
-    queryFn: async () => {
-      const params = new URLSearchParams();
-      if (memberId) params.set("memberId", memberId);
-      const res = await fetch(`/api/members/photo-feed?${params.toString()}`);
-      if (!res.ok) throw new Error("写真の取得に失敗しました");
-      return res.json();
-    },
+  const { data, isLoading, hasNextPage, fetchNextPage, isFetchingNextPage } =
+    useInfiniteQuery<PageResult>({
+      queryKey: ["member-photo-feed", memberId],
+      queryFn: async ({ pageParam }) => {
+        const params = new URLSearchParams({ page: String(pageParam) });
+        if (memberId) params.set("memberId", memberId);
+        const res = await fetch(`/api/members/photo-feed?${params.toString()}`);
+        if (!res.ok) throw new Error("写真の取得に失敗しました");
+        return res.json();
+      },
+      initialPageParam: 0,
+      getNextPageParam: (lastPage, _allPages, lastPageParam) =>
+        lastPage.hasMore ? (lastPageParam as number) + 1 : undefined,
+    });
+
+  const groups = data?.pages.flatMap((p) => p.groups) ?? [];
+
+  const handleLoadMore = useCallback(() => {
+    if (hasNextPage && !isFetchingNextPage) fetchNextPage();
+  }, [hasNextPage, isFetchingNextPage, fetchNextPage]);
+
+  // スクロール末尾で fetchNextPage を呼び出す
+  const sentinelRef = useIntersectionObserver(handleLoadMore, {
+    threshold: 0.1,
   });
 
   if (isLoading) {
@@ -85,6 +104,17 @@ export function MemberPhotoFeed() {
           </PhotoListProvider>
         </section>
       ))}
+
+      {/* 無限スクロール用センサー */}
+      {hasNextPage && (
+        <div
+          ref={sentinelRef}
+          className="py-8 text-center font-mono text-[11px] tracking-[0.3em] uppercase"
+          style={{ color: "var(--memorial-sub)" }}
+        >
+          {isFetchingNextPage ? "loading..." : ""}
+        </div>
+      )}
     </div>
   );
 }

@@ -14,6 +14,7 @@ type PhotoListActions = {
   nextPage: () => void;
   setLoading: (v: boolean) => void;
   setHasMore: (v: boolean) => void;
+  setPhotos: (photos: Photo[]) => void;
 };
 
 export type PhotoListStore = PhotoListState & PhotoListActions;
@@ -32,5 +33,6 @@ export function createPhotoListStore({ photos, hasMore }: StoreInit) {
     nextPage: () => set((s) => ({ page: s.page + 1 })),
     setLoading: (loading) => set({ loading }),
     setHasMore: (hasMore) => set({ hasMore }),
+    setPhotos: (photos) => set({ photos }),
   }));
 }
