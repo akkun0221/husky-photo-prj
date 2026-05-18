@@ -122,7 +122,10 @@
     @apply border-border outline-ring/50;
   }
   body {
-    @apply bg-background text-foreground;
+    @apply text-foreground;
+    /* bg-background を外す: YouTubeBackground の position:fixed zIndex:-1 ダーク背景が
+       body の白背景で隠れないようにするため。memorial ページは YouTubeBackground が
+       #0a0807 背景を提供し、admin/login はブラウザデフォルト白キャンバスを使用する */
   }
   html {
     @apply font-sans;
