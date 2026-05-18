@@ -44,7 +44,7 @@ export function OpeningMonument({ showCount, photoCount, voiceCount }: Props) {
           <br />
           気づけば解散まで追い続けていました。
           <br />
-          上がっている{showCount}公演の写真は実際に参戦したライブの記録です。
+          上がっている{showCount}公演の写真は参戦したライブの記録です。
           <br />
           まったりアップロードしていくのでゆるりとご覧ください。
         </p>
