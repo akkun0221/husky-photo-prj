@@ -2,10 +2,10 @@
 
 import { usePathname } from "next/navigation";
 
-const YT_VIDEO_ID = "08JiOyg4moY";
+const VIDEO_URL =
+  "https://pub-5d0311da2e0a4829b4043cf798f33881.r2.dev/videos/memorial-bg.mp4";
 
-// YouTube が実際に見える opacity・blur（見せないパスは opacity: 0 で再生継続）
-function getYtStyle(pathname: string): { opacity: number; blur: string } {
+function getVideoStyle(pathname: string): { opacity: number; blur: string } {
   if (pathname === "/") return { opacity: 0.2, blur: "10px" };
   if (pathname === "/lives") return { opacity: 0.15, blur: "8px" };
   return { opacity: 0, blur: "10px" };
@@ -13,7 +13,7 @@ function getYtStyle(pathname: string): { opacity: number; blur: string } {
 
 export function YouTubeBackground() {
   const pathname = usePathname();
-  const ytStyle = getYtStyle(pathname);
+  const videoStyle = getVideoStyle(pathname);
 
   return (
     <div
@@ -21,9 +21,12 @@ export function YouTubeBackground() {
       style={{ zIndex: -1 }}
       aria-hidden="true"
     >
-      <iframe
-        src={`https://www.youtube.com/embed/${YT_VIDEO_ID}?autoplay=1&mute=1&loop=1&playlist=${YT_VIDEO_ID}&controls=0&disablekb=1&modestbranding=1&playsinline=1&rel=0`}
-        allow="autoplay; encrypted-media"
+      <video
+        src={VIDEO_URL}
+        autoPlay
+        muted
+        loop
+        playsInline
         className="absolute"
         style={{
           top: "50%",
@@ -33,12 +36,11 @@ export function YouTubeBackground() {
           minWidth: "100%",
           minHeight: "100%",
           transform: "translate(-50%, -50%) scale(1.1)",
-          filter: `blur(${ytStyle.blur})`,
-          opacity: ytStyle.opacity,
-          border: "none",
+          filter: `blur(${videoStyle.blur})`,
+          opacity: videoStyle.opacity,
+          objectFit: "cover",
           transition: "opacity 0.8s ease",
         }}
-        title=""
       />
     </div>
   );
