@@ -354,7 +354,7 @@ export function MemorialClient({ lives, members }: Props) {
 
         {/* デスクトップ: ベントグリッド（月別マイルストーン） */}
         <div className="hidden sm:block">
-          <div className="space-y-8">
+          <div className="space-y-20">
             {groupedByMonth.map(
               ({ ym, year, shows, bentoGroups, isFirstOfYear }) => (
                 <section key={ym} id={isFirstOfYear ? `y${year}` : undefined}>
@@ -411,7 +411,7 @@ export function MemorialClient({ lives, members }: Props) {
                   </div>
 
                   {/* ベントグループ */}
-                  <div className="space-y-2">
+                  <div className="space-y-5">
                     {bentoGroups.map(
                       ({ shows: groupShows, isLargeLeft }, gi) => (
                         <BentoGroup
@@ -568,7 +568,7 @@ function BentoGroup({
   if (shows.length === 2) {
     return (
       <div
-        className="grid gap-2"
+        className="grid gap-5"
         style={{
           gridTemplateColumns: "repeat(2, 1fr)",
           height: CELL_H * 2 + 8,
@@ -584,7 +584,7 @@ function BentoGroup({
 
   return (
     <div
-      className="grid gap-2"
+      className="grid gap-5"
       style={{
         gridTemplateColumns: "repeat(3, 1fr)",
         gridTemplateRows: `${CELL_H}px ${CELL_H}px`,
