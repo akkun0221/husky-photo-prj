@@ -54,6 +54,45 @@ export function MemorialClient({ lives, members }: Props) {
     return m;
   }, [lives]);
 
+  const groupedByMonth = useMemo(() => {
+    const map = new Map<string, LiveWithPhotoCount[]>();
+    for (const live of sorted) {
+      const ym = live.date.slice(0, 7); // "YYYY.MM"
+      if (!map.has(ym)) map.set(ym, []);
+      map.get(ym)!.push(live);
+    }
+
+    let globalGroupIdx = 0;
+    const result: Array<{
+      ym: string;
+      year: string;
+      shows: LiveWithPhotoCount[];
+      bentoGroups: Array<{ shows: LiveWithPhotoCount[]; isLargeLeft: boolean }>;
+      isFirstOfYear: boolean;
+    }> = [];
+
+    for (const [ym, shows] of map) {
+      const year = ym.slice(0, 4);
+      const isFirstOfYear =
+        result.length === 0 || result[result.length - 1].year !== year;
+
+      const bentoGroups: Array<{
+        shows: LiveWithPhotoCount[];
+        isLargeLeft: boolean;
+      }> = [];
+      for (let i = 0; i < shows.length; i += 3) {
+        bentoGroups.push({
+          shows: shows.slice(i, i + 3),
+          isLargeLeft: globalGroupIdx % 2 === 0,
+        });
+        globalGroupIdx++;
+      }
+
+      result.push({ ym, year, shows, bentoGroups, isFirstOfYear });
+    }
+    return result;
+  }, [sorted]);
+
   return (
     <>
       {/* ── Sticky Jump Bar ── */}
@@ -313,60 +352,79 @@ export function MemorialClient({ lives, members }: Props) {
           })}
         </div>
 
-        {/* デスクトップ: ベントグリッド */}
+        {/* デスクトップ: ベントグリッド（月別マイルストーン） */}
         <div className="hidden sm:block">
-          <div className="space-y-16">
-            {years.map((year) => {
-              const yearShows = sorted.filter((l) => l.date.startsWith(year));
-              if (!yearShows.length) return null;
+          <div className="space-y-8">
+            {groupedByMonth.map(
+              ({ ym, year, shows, bentoGroups, isFirstOfYear }) => (
+                <section key={ym} id={isFirstOfYear ? `y${year}` : undefined}>
+                  {/* 年が変わるタイミングで年ラベルを表示 */}
+                  {isFirstOfYear && (
+                    <div className="mt-2 mb-5">
+                      <span
+                        style={{
+                          fontFamily:
+                            "var(--font-playfair), 'Noto Serif JP', serif",
+                          fontWeight: 700,
+                          fontStyle: "italic",
+                          fontSize: "clamp(32px, 4vw, 48px)",
+                          color: "var(--memorial-fg)",
+                          letterSpacing: "-0.02em",
+                          lineHeight: 1,
+                        }}
+                      >
+                        {year}
+                      </span>
+                    </div>
+                  )}
 
-              const bentoGroups: LiveWithPhotoCount[][] = [];
-              for (let i = 0; i < yearShows.length; i += 3) {
-                bentoGroups.push(yearShows.slice(i, i + 3));
-              }
-
-              return (
-                <section key={year} id={`y${year}`}>
-                  {/* 年ヘッダー */}
-                  <div className="mb-4 flex items-baseline gap-4">
-                    <span
+                  {/* 月マイルストーンマーカー */}
+                  <div className="mb-3 flex items-center gap-3">
+                    <div
                       style={{
-                        fontFamily:
-                          "var(--font-playfair), 'Noto Serif JP', serif",
-                        fontWeight: 700,
-                        fontStyle: "italic",
-                        fontSize: 22,
-                        color: "var(--memorial-fg)",
-                        letterSpacing: "-0.01em",
+                        width: 7,
+                        height: 7,
+                        background: "var(--memorial-accent)",
+                        transform: "rotate(45deg)",
+                        flexShrink: 0,
                       }}
+                    />
+                    <span
+                      className="font-mono text-[11px] tracking-[0.2em]"
+                      style={{ color: "var(--memorial-fg)" }}
                     >
-                      {year}
+                      {ym}
                     </span>
                     <div
                       className="flex-1"
-                      style={{ height: 1, background: "var(--memorial-rule)" }}
+                      style={{
+                        height: 1,
+                        background: "var(--memorial-faint)",
+                      }}
                     />
                     <span
-                      className="font-mono text-[10px] tracking-[0.3em] uppercase"
+                      className="font-mono text-[10px] tracking-[0.25em] uppercase"
                       style={{ color: "var(--memorial-sub)" }}
                     >
-                      {yearShows.length} shows
+                      {shows.length} {shows.length === 1 ? "show" : "shows"}
                     </span>
                   </div>
 
                   {/* ベントグループ */}
                   <div className="space-y-2">
-                    {bentoGroups.map((group, gi) => (
-                      <BentoGroup
-                        key={gi}
-                        shows={group}
-                        isLargeLeft={gi % 2 === 0}
-                      />
-                    ))}
+                    {bentoGroups.map(
+                      ({ shows: groupShows, isLargeLeft }, gi) => (
+                        <BentoGroup
+                          key={gi}
+                          shows={groupShows}
+                          isLargeLeft={isLargeLeft}
+                        />
+                      ),
+                    )}
                   </div>
                 </section>
-              );
-            })}
+              ),
+            )}
           </div>
         </div>
 
@@ -395,6 +453,7 @@ function LivePhotoSlideshow({ live }: { live: LiveWithPhotoCount }) {
   useEffect(() => {
     if (live.photoUrls.length <= 1) return;
     let inView = false;
+    let intervalId: ReturnType<typeof setInterval> | undefined;
 
     const observer = new IntersectionObserver(
       ([e]) => {
@@ -404,14 +463,16 @@ function LivePhotoSlideshow({ live }: { live: LiveWithPhotoCount }) {
     );
     if (containerRef.current) observer.observe(containerRef.current);
 
-    const id = setInterval(() => {
-      if (!inView) return;
-      // src は変えず opacity だけを切り替えるのでフラッシュなし
-      setIndex((i) => (i + 1) % live.photoUrls.length);
-    }, 3000);
+    const timeoutId = setTimeout(() => {
+      intervalId = setInterval(() => {
+        if (!inView) return;
+        setIndex((i) => (i + 1) % live.photoUrls.length);
+      }, 3000);
+    }, Math.random() * 3000);
 
     return () => {
-      clearInterval(id);
+      clearTimeout(timeoutId);
+      clearInterval(intervalId);
       observer.disconnect();
     };
   }, [live.photoUrls.length]);
@@ -641,6 +702,7 @@ function BentoPhoto({
   useEffect(() => {
     if (live.photoUrls.length <= 1) return;
     let inView = false;
+    let intervalId: ReturnType<typeof setInterval> | undefined;
 
     const observer = new IntersectionObserver(
       ([e]) => {
@@ -650,13 +712,16 @@ function BentoPhoto({
     );
     if (containerRef.current) observer.observe(containerRef.current);
 
-    const id = setInterval(() => {
-      if (!inView) return;
-      setIndex((i) => (i + 1) % live.photoUrls.length);
-    }, 3000);
+    const timeoutId = setTimeout(() => {
+      intervalId = setInterval(() => {
+        if (!inView) return;
+        setIndex((i) => (i + 1) % live.photoUrls.length);
+      }, 3000);
+    }, Math.random() * 3000);
 
     return () => {
-      clearInterval(id);
+      clearTimeout(timeoutId);
+      clearInterval(intervalId);
       observer.disconnect();
     };
   }, [live.photoUrls.length]);
