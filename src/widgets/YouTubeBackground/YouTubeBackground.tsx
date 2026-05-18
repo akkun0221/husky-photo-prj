@@ -4,13 +4,6 @@ import { usePathname } from "next/navigation";
 
 const YT_VIDEO_ID = "08JiOyg4moY";
 
-// Memorial デザインを適用するパス（このパスでは dark bg を提供）
-function isMemorialPath(pathname: string): boolean {
-  return (
-    pathname === "/" || pathname.startsWith("/lives") || pathname === "/members"
-  );
-}
-
 // YouTube が実際に見える opacity・blur（見せないパスは opacity: 0 で再生継続）
 function getYtStyle(pathname: string): { opacity: number; blur: string } {
   if (pathname === "/") return { opacity: 0.2, blur: "10px" };
@@ -20,17 +13,12 @@ function getYtStyle(pathname: string): { opacity: number; blur: string } {
 
 export function YouTubeBackground() {
   const pathname = usePathname();
-  const showDarkBg = isMemorialPath(pathname);
   const ytStyle = getYtStyle(pathname);
 
   return (
     <div
       className="pointer-events-none fixed inset-0 overflow-hidden"
-      style={{
-        zIndex: -1,
-        // Memorial ページはここで dark bg を供給。非 Memorial は transparent にして admin 等の白背景を邪魔しない
-        background: showDarkBg ? "var(--memorial-bg)" : "transparent",
-      }}
+      style={{ zIndex: -1 }}
       aria-hidden="true"
     >
       <iframe
