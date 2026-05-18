@@ -2,6 +2,7 @@
 
 import { useCallback, useMemo, useState, useEffect, useRef } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
+import Link from "next/link";
 import Image from "next/image";
 import type { LiveWithPhotoCount } from "@/entities/live/types";
 import type { MemberWithPhotoCount } from "@/entities/member/types";
@@ -156,7 +157,7 @@ export function MemorialClient({ lives, members }: Props) {
             </span>
             <div className="flex gap-1">
               {members.map((m) => (
-                <a
+                <Link
                   key={m.id}
                   href={`/members?member=${m.id}`}
                   className="flex flex-shrink-0 cursor-pointer items-center gap-1.5 py-1 pr-2 pl-1 no-underline transition-opacity hover:opacity-70"
@@ -175,7 +176,7 @@ export function MemorialClient({ lives, members }: Props) {
                   >
                     {m.name}
                   </span>
-                </a>
+                </Link>
               ))}
             </div>
           </div>
@@ -202,7 +203,7 @@ export function MemorialClient({ lives, members }: Props) {
           </span>
           <div className="flex gap-1.5">
             {members.map((m) => (
-              <a
+              <Link
                 key={m.id}
                 href={`/members?member=${m.id}`}
                 className="block h-7 w-7 flex-shrink-0 transition-opacity hover:opacity-70"
