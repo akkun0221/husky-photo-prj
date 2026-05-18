@@ -49,18 +49,13 @@ function buildRows(
 }
 
 type Props = {
-  fetchMore?: (page: number) => Promise<Photo[]>;
+  onLoadMore?: () => void;
+  isFetchingNext?: boolean;
 };
 
-export function PhotoGrid({ fetchMore }: Props) {
+export function PhotoGrid({ onLoadMore, isFetchingNext = false }: Props) {
   const photos = usePhotoListStore((s) => s.photos);
-  const page = usePhotoListStore((s) => s.page);
   const hasMore = usePhotoListStore((s) => s.hasMore);
-  const loading = usePhotoListStore((s) => s.loading);
-  const append = usePhotoListStore((s) => s.append);
-  const nextPage = usePhotoListStore((s) => s.nextPage);
-  const setLoading = usePhotoListStore((s) => s.setLoading);
-  const setHasMore = usePhotoListStore((s) => s.setHasMore);
 
   // onLoad で取得した実測アスペクト比
   const [loadedRatios, setLoadedRatios] = useState<Map<string, number>>(
@@ -138,27 +133,10 @@ export function PhotoGrid({ fetchMore }: Props) {
     });
   }, []);
 
-  const loadMore = useCallback(async () => {
-    if (!fetchMore || loading || !hasMore) return;
-    setLoading(true);
-    try {
-      const next = await fetchMore(page);
-      if (next.length < 24) setHasMore(false);
-      append(next);
-      nextPage();
-    } finally {
-      setLoading(false);
-    }
-  }, [
-    fetchMore,
-    loading,
-    hasMore,
-    page,
-    append,
-    nextPage,
-    setLoading,
-    setHasMore,
-  ]);
+  const loadMore = useCallback(() => {
+    if (!onLoadMore || isFetchingNext || !hasMore) return;
+    onLoadMore();
+  }, [onLoadMore, isFetchingNext, hasMore]);
 
   const sentinelRef = useIntersectionObserver(loadMore, { threshold: 0.1 });
 
@@ -237,10 +215,10 @@ export function PhotoGrid({ fetchMore }: Props) {
           ref={sentinelRef}
           className="py-8 text-center text-sm text-zinc-400"
         >
-          {loading ? "読み込み中..." : ""}
+          {isFetchingNext ? "読み込み中..." : ""}
         </div>
       )}
-      {!hasMore && photos.length > 0 && fetchMore && (
+      {!hasMore && photos.length > 0 && onLoadMore !== undefined && (
         <p className="py-8 text-center text-sm text-zinc-400">
           全て表示しました
         </p>

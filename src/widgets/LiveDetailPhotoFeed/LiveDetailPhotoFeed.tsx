@@ -1,8 +1,7 @@
 "use client";
 
-import { useCallback } from "react";
 import { useSearchParams } from "next/navigation";
-import { useQuery } from "@tanstack/react-query";
+import { useInfiniteQuery } from "@tanstack/react-query";
 import { PhotoListProvider } from "@/entities/photo/PhotoListContext";
 import { PhotoGrid } from "@/widgets/PhotoGrid/PhotoGrid";
 import type { Photo } from "@/entities/photo/types";
@@ -15,27 +14,22 @@ export function LiveDetailPhotoFeed({ liveId }: Props) {
   const searchParams = useSearchParams();
   const memberId = searchParams.get("member");
 
-  const { data: initialPhotos = [], isLoading } = useQuery<Photo[]>({
-    queryKey: ["photos-by-live", liveId, memberId],
-    queryFn: async () => {
-      const params = new URLSearchParams({ liveId, page: "0" });
-      if (memberId) params.set("memberId", memberId);
-      const res = await fetch(`/api/photos/by-live?${params.toString()}`);
-      if (!res.ok) throw new Error("写真の取得に失敗しました");
-      return res.json();
-    },
-  });
+  const { data, isLoading, hasNextPage, fetchNextPage, isFetchingNextPage } =
+    useInfiniteQuery<Photo[]>({
+      queryKey: ["photos-by-live", liveId, memberId],
+      queryFn: async ({ pageParam }) => {
+        const params = new URLSearchParams({ liveId, page: String(pageParam) });
+        if (memberId) params.set("memberId", memberId);
+        const res = await fetch(`/api/photos/by-live?${params.toString()}`);
+        if (!res.ok) throw new Error("写真の取得に失敗しました");
+        return res.json();
+      },
+      initialPageParam: 0,
+      getNextPageParam: (lastPage, _allPages, lastPageParam) =>
+        lastPage.length === 24 ? (lastPageParam as number) + 1 : undefined,
+    });
 
-  const fetchMore = useCallback(
-    async (page: number): Promise<Photo[]> => {
-      const params = new URLSearchParams({ liveId, page: String(page) });
-      if (memberId) params.set("memberId", memberId);
-      const res = await fetch(`/api/photos/by-live?${params.toString()}`);
-      if (!res.ok) throw new Error("写真の取得に失敗しました");
-      return res.json();
-    },
-    [liveId, memberId],
-  );
+  const photos = data?.pages.flat() ?? [];
 
   if (isLoading) {
     return (
@@ -43,7 +37,7 @@ export function LiveDetailPhotoFeed({ liveId }: Props) {
     );
   }
 
-  if (initialPhotos.length === 0) {
+  if (photos.length === 0) {
     return (
       <p className="py-8 text-center text-sm text-zinc-400">写真がありません</p>
     );
@@ -52,10 +46,13 @@ export function LiveDetailPhotoFeed({ liveId }: Props) {
   return (
     <PhotoListProvider
       key={memberId ?? "all"}
-      photos={initialPhotos}
-      hasMore={initialPhotos.length === 24}
+      photos={photos}
+      hasMore={hasNextPage ?? false}
     >
-      <PhotoGrid fetchMore={fetchMore} />
+      <PhotoGrid
+        onLoadMore={fetchNextPage}
+        isFetchingNext={isFetchingNextPage}
+      />
     </PhotoListProvider>
   );
 }
