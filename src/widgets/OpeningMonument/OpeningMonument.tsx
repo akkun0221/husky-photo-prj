@@ -40,12 +40,13 @@ export function OpeningMonument({ showCount, photoCount, voiceCount }: Props) {
           className="mx-auto mt-8 max-w-xl px-2 text-sm leading-loose sm:px-0"
           style={{ color: "var(--memorial-sub)", lineHeight: 2, fontSize: 15 }}
         >
-          2022年12月10日、池袋SOUND PEACEで、はじめて husky を撮りました。
+          2022年12月10日に池袋SOUND PEACEでhuskyと出会い、
           <br />
-          そこから 2026年4月27日の解散ライブまで、{showCount}{" "}
-          公演を追いかけた記録です。
+          気づけば解散まで追い続けていました。
           <br />
-          まったりアップロードしていくのでゆるりと見てください。
+          上がっている{showCount}公演の写真は実際に参戦したライブの記録です。
+          <br />
+          まったりアップロードしていくのでゆるりとご覧ください。
         </p>
 
         {/* 統計数値 */}

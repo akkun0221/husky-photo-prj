@@ -17,6 +17,7 @@ export default async function HomePage() {
   ]);
 
   const totalPhotos = lives.reduce((sum, l) => sum + l.photoCount, 0);
+  const livesWithPhotosCount = lives.filter((l) => l.photoCount > 0).length;
   const slideshowPhotos = [...lives]
     .reverse()
     .filter((l) => l.thumbnailUrl)
@@ -26,7 +27,7 @@ export default async function HomePage() {
     <div style={{ minHeight: "100dvh", position: "relative" }}>
       <MemorialHeader />
       <OpeningMonument
-        showCount={lives.length}
+        showCount={livesWithPhotosCount}
         photoCount={totalPhotos}
         voiceCount={members.length}
       />
