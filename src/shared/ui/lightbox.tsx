@@ -2,6 +2,7 @@
 
 import { useEffect } from "react";
 import { X, ChevronLeft, ChevronRight } from "lucide-react";
+import { useSwipe } from "@/shared/hooks/useSwipe";
 
 type Props = {
   photos: { r2_url: string }[];
@@ -13,6 +14,11 @@ type Props = {
 
 export function Lightbox({ photos, index, onClose, onPrev, onNext }: Props) {
   const photo = photos[index];
+
+  const { onTouchStart, onTouchEnd } = useSwipe({
+    onSwipeLeft: index < photos.length - 1 ? onNext : undefined,
+    onSwipeRight: index > 0 ? onPrev : undefined,
+  });
 
   useEffect(() => {
     function handleKey(e: KeyboardEvent) {
@@ -36,6 +42,8 @@ export function Lightbox({ photos, index, onClose, onPrev, onNext }: Props) {
     <div
       className="fixed inset-0 z-50 flex items-center justify-center bg-black/90"
       onClick={onClose}
+      onTouchStart={onTouchStart}
+      onTouchEnd={onTouchEnd}
     >
       <button
         className="absolute top-4 right-4 rounded-full p-2 text-white hover:bg-white/10"

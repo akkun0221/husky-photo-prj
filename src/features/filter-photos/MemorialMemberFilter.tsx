@@ -39,7 +39,7 @@ export function MemorialMemberFilter({ members }: Props) {
       <button
         type="button"
         onClick={() => handleSelect(ALL_VALUE)}
-        className="flex flex-shrink-0 items-center px-3 py-1.5 font-mono text-[11px] tracking-[0.2em] uppercase transition-opacity hover:opacity-70"
+        className="flex flex-shrink-0 items-center px-3 py-2.5 font-mono text-[11px] tracking-[0.2em] uppercase transition-opacity hover:opacity-70"
         style={{
           border: "1px solid",
           borderColor:
@@ -61,7 +61,7 @@ export function MemorialMemberFilter({ members }: Props) {
           key={m.id}
           type="button"
           onClick={() => handleSelect(m.id)}
-          className="flex flex-shrink-0 items-center gap-1.5 py-1.5 pr-3 pl-2 font-mono text-[11px] tracking-[0.2em] transition-opacity hover:opacity-70"
+          className="flex flex-shrink-0 items-center gap-1.5 py-2.5 pr-3 pl-2 font-mono text-[11px] tracking-[0.2em] transition-opacity hover:opacity-70"
           style={{
             border: "1px solid",
             borderColor:

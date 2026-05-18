@@ -1,12 +1,23 @@
-import Link from "next/link";
+"use client";
 
-const NAV: { href: string; label: string; active?: boolean }[] = [
-  { href: "/", label: "top", active: true },
+import Link from "next/link";
+import { usePathname } from "next/navigation";
+
+const NAV = [
+  { href: "/", label: "top" },
   { href: "/lives", label: "lives" },
   { href: "/members", label: "members" },
 ];
 
 export function MemorialHeader() {
+  const pathname = usePathname();
+
+  // /lives/[id] のような子パスも /lives としてアクティブ判定する
+  function isActive(href: string) {
+    if (href === "/") return pathname === "/";
+    return pathname.startsWith(href);
+  }
+
   return (
     <header
       className="relative flex items-center justify-between border-b px-4 py-4 sm:px-16 sm:py-8"
@@ -69,7 +80,9 @@ export function MemorialHeader() {
             href={item.href}
             className="text-[10px] font-medium tracking-[0.2em] uppercase transition-colors sm:text-xs sm:tracking-[0.32em]"
             style={{
-              color: item.active ? "var(--memorial-fg)" : "var(--memorial-sub)",
+              color: isActive(item.href)
+                ? "var(--memorial-fg)"
+                : "var(--memorial-sub)",
             }}
           >
             {item.label}
