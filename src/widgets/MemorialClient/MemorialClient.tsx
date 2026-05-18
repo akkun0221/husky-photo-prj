@@ -62,33 +62,25 @@ export function MemorialClient({ lives, members }: Props) {
       map.get(ym)!.push(live);
     }
 
-    let globalGroupIdx = 0;
     const result: Array<{
       ym: string;
       year: string;
       shows: LiveWithPhotoCount[];
-      bentoGroups: Array<{ shows: LiveWithPhotoCount[]; isLargeLeft: boolean }>;
       isFirstOfYear: boolean;
+      isLargeLeft: boolean;
     }> = [];
 
     for (const [ym, shows] of map) {
       const year = ym.slice(0, 4);
       const isFirstOfYear =
         result.length === 0 || result[result.length - 1].year !== year;
-
-      const bentoGroups: Array<{
-        shows: LiveWithPhotoCount[];
-        isLargeLeft: boolean;
-      }> = [];
-      for (let i = 0; i < shows.length; i += 3) {
-        bentoGroups.push({
-          shows: shows.slice(i, i + 3),
-          isLargeLeft: globalGroupIdx % 2 === 0,
-        });
-        globalGroupIdx++;
-      }
-
-      result.push({ ym, year, shows, bentoGroups, isFirstOfYear });
+      result.push({
+        ym,
+        year,
+        shows,
+        isFirstOfYear,
+        isLargeLeft: result.length % 2 === 0,
+      });
     }
     return result;
   }, [sorted]);
@@ -352,24 +344,24 @@ export function MemorialClient({ lives, members }: Props) {
           })}
         </div>
 
-        {/* デスクトップ: ベントグリッド（月別マイルストーン） */}
+        {/* デスクトップ: スタッガードレイアウト（月別マイルストーン） */}
         <div className="hidden sm:block">
-          <div className="space-y-20">
+          <div className="space-y-32">
             {groupedByMonth.map(
-              ({ ym, year, shows, bentoGroups, isFirstOfYear }) => (
+              ({ ym, year, shows, isFirstOfYear, isLargeLeft }) => (
                 <section key={ym} id={isFirstOfYear ? `y${year}` : undefined}>
-                  {/* 年が変わるタイミングで年ラベルを表示 */}
+                  {/* 年ラベル */}
                   {isFirstOfYear && (
-                    <div className="mt-2 mb-5">
+                    <div className="mb-8">
                       <span
                         style={{
                           fontFamily:
                             "var(--font-playfair), 'Noto Serif JP', serif",
                           fontWeight: 700,
                           fontStyle: "italic",
-                          fontSize: "clamp(32px, 4vw, 48px)",
+                          fontSize: "clamp(40px, 5vw, 64px)",
                           color: "var(--memorial-fg)",
-                          letterSpacing: "-0.02em",
+                          letterSpacing: "-0.03em",
                           lineHeight: 1,
                         }}
                       >
@@ -379,7 +371,7 @@ export function MemorialClient({ lives, members }: Props) {
                   )}
 
                   {/* 月マイルストーンマーカー */}
-                  <div className="mb-3 flex items-center gap-3">
+                  <div className="mb-6 flex items-center gap-3">
                     <div
                       style={{
                         width: 7,
@@ -397,10 +389,7 @@ export function MemorialClient({ lives, members }: Props) {
                     </span>
                     <div
                       className="flex-1"
-                      style={{
-                        height: 1,
-                        background: "var(--memorial-faint)",
-                      }}
+                      style={{ height: 1, background: "var(--memorial-faint)" }}
                     />
                     <span
                       className="font-mono text-[10px] tracking-[0.25em] uppercase"
@@ -410,18 +399,8 @@ export function MemorialClient({ lives, members }: Props) {
                     </span>
                   </div>
 
-                  {/* ベントグループ */}
-                  <div className="space-y-5">
-                    {bentoGroups.map(
-                      ({ shows: groupShows, isLargeLeft }, gi) => (
-                        <BentoGroup
-                          key={gi}
-                          shows={groupShows}
-                          isLargeLeft={isLargeLeft}
-                        />
-                      ),
-                    )}
-                  </div>
+                  {/* スタッガードレイアウト */}
+                  <MonthLayout shows={shows} isLargeLeft={isLargeLeft} />
                 </section>
               ),
             )}
@@ -546,70 +525,106 @@ function ComingSoon({ label }: { label: string }) {
   );
 }
 
-// ── ベントグリッド用コンポーネント ──────────────────────────────
+// ── スタッガードレイアウト ───────────────────────────────────────
 
-const CELL_H = 220;
+const LARGE_H = 420;
+const SMALL_H = 260;
+const OFFSET_Y = 72; // 小カードを下にずらす量
 
-function BentoGroup({
+function MonthLayout({
   shows,
   isLargeLeft,
 }: {
   shows: LiveWithPhotoCount[];
   isLargeLeft: boolean;
 }) {
+  const primary = shows[0];
+  const secondaries = shows.slice(1, 3);
+  const overflow = shows.slice(3);
+
+  // 1公演: 63% 幅で左右交互に配置
   if (shows.length === 1) {
     return (
-      <div style={{ height: CELL_H * 2 + 8 }}>
-        <BentoCard live={shows[0]} style={{ height: "100%" }} large />
-      </div>
-    );
-  }
-
-  if (shows.length === 2) {
-    return (
       <div
-        className="grid gap-5"
         style={{
-          gridTemplateColumns: "repeat(2, 1fr)",
-          height: CELL_H * 2 + 8,
+          display: "flex",
+          justifyContent: isLargeLeft ? "flex-start" : "flex-end",
         }}
       >
-        <BentoCard live={shows[0]} style={{}} large />
-        <BentoCard live={shows[1]} style={{}} large />
+        <div style={{ width: "63%", height: LARGE_H }}>
+          <BentoCard live={primary} style={{ height: "100%" }} large />
+        </div>
       </div>
     );
   }
 
-  const [a, b, c] = shows;
+  // 2公演以上: 大カード(61%) + 小カラム(残り) を垂直にずらす
+  const hasTwoSmalls = secondaries.length >= 2;
+  const smallColH = hasTwoSmalls
+    ? Math.floor((LARGE_H - OFFSET_Y - 16) / 2) // 16px = 2列間ギャップ
+    : SMALL_H;
 
-  return (
+  const largeCol = (
+    <div style={{ flex: "0 0 61%", height: LARGE_H }}>
+      <BentoCard live={primary} style={{ height: "100%" }} large />
+    </div>
+  );
+
+  const smallCol = (
     <div
-      className="grid gap-5"
       style={{
-        gridTemplateColumns: "repeat(3, 1fr)",
-        gridTemplateRows: `${CELL_H}px ${CELL_H}px`,
+        flex: 1,
+        display: "flex",
+        flexDirection: "column",
+        gap: 16,
+        marginTop: OFFSET_Y,
       }}
     >
-      {isLargeLeft ? (
-        <>
-          <BentoCard
-            live={a}
-            style={{ gridColumn: "1 / 3", gridRow: "1 / 3" }}
-            large
-          />
-          <BentoCard live={b} style={{ gridColumn: 3, gridRow: 1 }} />
-          <BentoCard live={c} style={{ gridColumn: 3, gridRow: 2 }} />
-        </>
-      ) : (
-        <>
-          <BentoCard live={a} style={{ gridColumn: 1, gridRow: 1 }} />
-          <BentoCard live={b} style={{ gridColumn: 1, gridRow: 2 }} />
-          <BentoCard
-            live={c}
-            style={{ gridColumn: "2 / 4", gridRow: "1 / 3" }}
-            large
-          />
-        </>
+      {secondaries.map((show) => (
+        <div key={show.id} style={{ height: smallColH }}>
+          <BentoCard live={show} style={{ height: "100%" }} />
+        </div>
+      ))}
+    </div>
+  );
+
+  return (
+    <div>
+      <div
+        style={{
+          display: "flex",
+          gap: 20,
+          alignItems: "flex-start",
+        }}
+      >
+        {isLargeLeft ? (
+          <>
+            {largeCol}
+            {smallCol}
+          </>
+        ) : (
+          <>
+            {smallCol}
+            {largeCol}
+          </>
+        )}
+      </div>
+
+      {/* 4公演以上の余剰分は均等な行で追加 */}
+      {overflow.length > 0 && (
+        <div
+          style={{
+            display: "flex",
+            gap: 20,
+            marginTop: 20,
+          }}
+        >
+          {overflow.slice(0, 3).map((show) => (
+            <div key={show.id} style={{ flex: 1, height: 240 }}>
+              <BentoCard live={show} style={{ height: "100%" }} />
+            </div>
+          ))}
+        </div>
       )}
     </div>
   );
