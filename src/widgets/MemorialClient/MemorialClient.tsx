@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useMemo, useState, useEffect, useRef } from "react";
+import type { CSSProperties } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import Image from "next/image";
@@ -217,40 +218,32 @@ export function MemorialClient({ lives, members }: Props) {
 
       {/* ── Memorial Timeline ── */}
       <section className="relative px-4 pt-10 pb-20 sm:px-16 sm:pt-15">
-        {/* central spine (desktop only) */}
-        <div
-          className="pointer-events-none absolute top-0 bottom-0 left-1/2 hidden w-px -translate-x-1/2 sm:block"
-          style={{ background: "var(--memorial-faint)" }}
-        />
-
-        <div className="relative">
-          {/* 方向インジケーター */}
-          <div className="mb-8 text-center sm:mb-10">
-            <div
-              className="inline-block px-4 py-1.5 font-mono text-[10px] tracking-[0.4em] uppercase"
-              style={{ color: "var(--memorial-accent)" }}
-            >
-              ──{" "}
-              {direction === "forward"
-                ? "first frame · 2022.12.10"
-                : "last frame · 2026.04.27"}{" "}
-              ──
-            </div>
+        {/* 方向インジケーター */}
+        <div className="mb-8 text-center sm:mb-10">
+          <div
+            className="inline-block px-4 py-1.5 font-mono text-[10px] tracking-[0.4em] uppercase"
+            style={{ color: "var(--memorial-accent)" }}
+          >
+            ──{" "}
+            {direction === "forward"
+              ? "first frame · 2022.12.10"
+              : "last frame · 2026.04.27"}{" "}
+            ──
           </div>
+        </div>
 
+        {/* モバイル: 縦並びカード */}
+        <div className="sm:hidden">
           {sorted.map((live, i) => {
-            const isLeft = i % 2 === 0;
             const year = live.date.slice(0, 4);
             const isYearAnchor =
               i === 0 || sorted[i - 1].date.slice(0, 4) !== year;
-
             return (
               <div key={live.id}>
-                {/* 年マーカー */}
                 {isYearAnchor && (
                   <div
                     id={`y${year}`}
-                    className="relative mb-6 flex justify-center"
+                    className="relative mb-4 flex justify-center"
                     style={{ marginTop: i === 0 ? 0 : 8 }}
                   >
                     <div
@@ -271,10 +264,8 @@ export function MemorialClient({ lives, members }: Props) {
                     </div>
                   </div>
                 )}
-
-                {/* モバイル: 縦並びカード */}
                 <div
-                  className="mb-8 border-l-2 pl-4 sm:hidden"
+                  className="mb-8 border-l-2 pl-4"
                   style={{ borderColor: "var(--memorial-faint)" }}
                 >
                   <a
@@ -317,111 +308,79 @@ export function MemorialClient({ lives, members }: Props) {
                     </div>
                   </a>
                 </div>
-
-                {/* デスクトップ: 3列グリッド */}
-                <div
-                  className="relative mb-14 hidden items-center sm:grid"
-                  style={{ gridTemplateColumns: "1fr 60px 1fr" }}
-                >
-                  {/* spine node */}
-                  <div
-                    className="relative z-10"
-                    style={{
-                      gridColumn: 2,
-                      justifySelf: "center",
-                      width: 12,
-                      height: 12,
-                      background: "var(--memorial-fg)",
-                    }}
-                  />
-
-                  {/* テキストカード */}
-                  <a
-                    href={`/lives/${live.id}`}
-                    className="block no-underline transition-opacity hover:opacity-75"
-                    style={{
-                      gridColumn: isLeft ? 1 : 3,
-                      textAlign: isLeft ? "right" : "left",
-                      color: "var(--memorial-fg)",
-                      paddingRight: isLeft ? 32 : 0,
-                      paddingLeft: isLeft ? 0 : 32,
-                    }}
-                  >
-                    <div
-                      className="font-mono text-[11px] tracking-[0.3em] uppercase"
-                      style={{ color: "var(--memorial-sub)" }}
-                    >
-                      {live.weekday} · {live.venue}
-                    </div>
-                    <div
-                      style={{
-                        fontFamily:
-                          "var(--font-playfair), 'Noto Serif JP', serif",
-                        fontWeight: 300,
-                        fontStyle: "italic",
-                        fontSize: "clamp(36px, 4vw, 56px)",
-                        lineHeight: 1.0,
-                        letterSpacing: "-0.02em",
-                        color: "var(--memorial-fg)",
-                        marginTop: 6,
-                      }}
-                    >
-                      {live.date}
-                    </div>
-                    <div className="mt-2.5 text-lg font-medium">
-                      {live.title || live.venue}
-                    </div>
-                    <div
-                      className="mt-3.5 inline-flex items-center gap-2.5 font-mono text-[10px] tracking-[0.3em] uppercase"
-                      style={{
-                        color: "var(--memorial-sub)",
-                        flexDirection: isLeft ? "row-reverse" : "row",
-                      }}
-                    >
-                      <svg
-                        width="24"
-                        height="12"
-                        viewBox="0 0 24 12"
-                        fill="none"
-                        aria-hidden="true"
-                      >
-                        <path
-                          d="M0 6h22M16 1l6 5-6 5"
-                          stroke="var(--memorial-accent)"
-                          strokeWidth="1.2"
-                        />
-                      </svg>
-                      view {live.photoCount} photos
-                    </div>
-                  </a>
-
-                  {/* 写真エリア */}
-                  <div
-                    style={{
-                      gridColumn: isLeft ? 3 : 1,
-                      paddingLeft: isLeft ? 32 : 0,
-                      paddingRight: isLeft ? 0 : 32,
-                    }}
-                  >
-                    <LivePhotoSlideshow live={live} />
-                  </div>
-                </div>
               </div>
             );
           })}
+        </div>
 
-          {/* end marker */}
-          <div className="relative flex justify-center pt-3">
-            <div
-              className="px-4 py-2 font-mono text-[10px] tracking-[0.5em] uppercase"
-              style={{ color: "var(--memorial-accent)" }}
-            >
-              ──{" "}
-              {direction === "forward"
-                ? "fade to black · 2026.04.27"
-                : "first shutter · 2022.12.10"}{" "}
-              ──
-            </div>
+        {/* デスクトップ: ベントグリッド */}
+        <div className="hidden sm:block">
+          <div className="space-y-16">
+            {years.map((year) => {
+              const yearShows = sorted.filter((l) => l.date.startsWith(year));
+              if (!yearShows.length) return null;
+
+              const bentoGroups: LiveWithPhotoCount[][] = [];
+              for (let i = 0; i < yearShows.length; i += 3) {
+                bentoGroups.push(yearShows.slice(i, i + 3));
+              }
+
+              return (
+                <section key={year} id={`y${year}`}>
+                  {/* 年ヘッダー */}
+                  <div className="mb-4 flex items-baseline gap-4">
+                    <span
+                      style={{
+                        fontFamily:
+                          "var(--font-playfair), 'Noto Serif JP', serif",
+                        fontWeight: 700,
+                        fontStyle: "italic",
+                        fontSize: 22,
+                        color: "var(--memorial-fg)",
+                        letterSpacing: "-0.01em",
+                      }}
+                    >
+                      {year}
+                    </span>
+                    <div
+                      className="flex-1"
+                      style={{ height: 1, background: "var(--memorial-rule)" }}
+                    />
+                    <span
+                      className="font-mono text-[10px] tracking-[0.3em] uppercase"
+                      style={{ color: "var(--memorial-sub)" }}
+                    >
+                      {yearShows.length} shows
+                    </span>
+                  </div>
+
+                  {/* ベントグループ */}
+                  <div className="space-y-2">
+                    {bentoGroups.map((group, gi) => (
+                      <BentoGroup
+                        key={gi}
+                        shows={group}
+                        isLargeLeft={gi % 2 === 0}
+                      />
+                    ))}
+                  </div>
+                </section>
+              );
+            })}
+          </div>
+        </div>
+
+        {/* end marker */}
+        <div className="relative mt-10 flex justify-center">
+          <div
+            className="px-4 py-2 font-mono text-[10px] tracking-[0.5em] uppercase"
+            style={{ color: "var(--memorial-accent)" }}
+          >
+            ──{" "}
+            {direction === "forward"
+              ? "fade to black · 2026.04.27"
+              : "first shutter · 2022.12.10"}{" "}
+            ──
           </div>
         </div>
       </section>
@@ -522,6 +481,221 @@ function ComingSoon({ label }: { label: string }) {
       >
         {label}
       </div>
+    </div>
+  );
+}
+
+// ── ベントグリッド用コンポーネント ──────────────────────────────
+
+const CELL_H = 220;
+
+function BentoGroup({
+  shows,
+  isLargeLeft,
+}: {
+  shows: LiveWithPhotoCount[];
+  isLargeLeft: boolean;
+}) {
+  if (shows.length === 1) {
+    return (
+      <div style={{ height: CELL_H * 2 + 8 }}>
+        <BentoCard live={shows[0]} style={{ height: "100%" }} large />
+      </div>
+    );
+  }
+
+  if (shows.length === 2) {
+    return (
+      <div
+        className="grid gap-2"
+        style={{
+          gridTemplateColumns: "repeat(2, 1fr)",
+          height: CELL_H * 2 + 8,
+        }}
+      >
+        <BentoCard live={shows[0]} style={{}} large />
+        <BentoCard live={shows[1]} style={{}} large />
+      </div>
+    );
+  }
+
+  const [a, b, c] = shows;
+
+  return (
+    <div
+      className="grid gap-2"
+      style={{
+        gridTemplateColumns: "repeat(3, 1fr)",
+        gridTemplateRows: `${CELL_H}px ${CELL_H}px`,
+      }}
+    >
+      {isLargeLeft ? (
+        <>
+          <BentoCard
+            live={a}
+            style={{ gridColumn: "1 / 3", gridRow: "1 / 3" }}
+            large
+          />
+          <BentoCard live={b} style={{ gridColumn: 3, gridRow: 1 }} />
+          <BentoCard live={c} style={{ gridColumn: 3, gridRow: 2 }} />
+        </>
+      ) : (
+        <>
+          <BentoCard live={a} style={{ gridColumn: 1, gridRow: 1 }} />
+          <BentoCard live={b} style={{ gridColumn: 1, gridRow: 2 }} />
+          <BentoCard
+            live={c}
+            style={{ gridColumn: "2 / 4", gridRow: "1 / 3" }}
+            large
+          />
+        </>
+      )}
+    </div>
+  );
+}
+
+function BentoCard({
+  live,
+  style,
+  large,
+}: {
+  live: LiveWithPhotoCount;
+  style: CSSProperties;
+  large?: boolean;
+}) {
+  return (
+    <a
+      href={`/lives/${live.id}`}
+      className="group relative block overflow-hidden no-underline"
+      style={{ ...style, color: "var(--memorial-fg)" }}
+    >
+      <BentoPhoto live={live} large={large} />
+
+      {/* グラデーションオーバーレイ */}
+      <div
+        className="pointer-events-none absolute inset-0"
+        style={{
+          background:
+            "linear-gradient(to top, rgba(10,8,7,0.92) 0%, rgba(10,8,7,0.35) 40%, transparent 70%)",
+        }}
+      />
+
+      {/* ホバー時の薄い明転 */}
+      <div
+        className="pointer-events-none absolute inset-0 opacity-0 transition-opacity duration-300 group-hover:opacity-100"
+        style={{ background: "rgba(255,255,255,0.06)" }}
+      />
+
+      {/* テキスト */}
+      <div className="absolute right-0 bottom-0 left-0 p-3 sm:p-4">
+        <div
+          className="font-mono text-[9px] tracking-[0.3em] uppercase"
+          style={{ color: "var(--memorial-sub)" }}
+        >
+          {live.weekday} · {live.venue}
+        </div>
+        <div
+          style={{
+            fontFamily: "var(--font-playfair), 'Noto Serif JP', serif",
+            fontStyle: "italic",
+            fontSize: large
+              ? "clamp(22px, 2.5vw, 38px)"
+              : "clamp(14px, 1.5vw, 22px)",
+            lineHeight: 1.1,
+            letterSpacing: "-0.02em",
+            color: "var(--memorial-fg)",
+            marginTop: 2,
+          }}
+        >
+          {live.date}
+        </div>
+        {large && (
+          <div
+            className="mt-1 text-sm font-medium"
+            style={{ color: "var(--memorial-fg)" }}
+          >
+            {live.title || live.venue}
+          </div>
+        )}
+        <div
+          className="mt-2 font-mono text-[9px] tracking-[0.25em] uppercase"
+          style={{ color: "var(--memorial-sub)" }}
+        >
+          {live.photoCount} photos →
+        </div>
+      </div>
+    </a>
+  );
+}
+
+function BentoPhoto({
+  live,
+  large,
+}: {
+  live: LiveWithPhotoCount;
+  large?: boolean;
+}) {
+  const [index, setIndex] = useState(0);
+  const containerRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (live.photoUrls.length <= 1) return;
+    let inView = false;
+
+    const observer = new IntersectionObserver(
+      ([e]) => {
+        inView = e.isIntersecting;
+      },
+      { threshold: 0.1 },
+    );
+    if (containerRef.current) observer.observe(containerRef.current);
+
+    const id = setInterval(() => {
+      if (!inView) return;
+      setIndex((i) => (i + 1) % live.photoUrls.length);
+    }, 3000);
+
+    return () => {
+      clearInterval(id);
+      observer.disconnect();
+    };
+  }, [live.photoUrls.length]);
+
+  if (!live.photoUrls.length) {
+    return (
+      <div className="absolute inset-0">
+        <Image
+          src="/comingsoon.jpeg"
+          alt="Coming Soon"
+          fill
+          className="object-cover"
+          style={{ opacity: 0.3 }}
+          sizes="(max-width: 1280px) 66vw, 800px"
+        />
+      </div>
+    );
+  }
+
+  return (
+    <div ref={containerRef} className="absolute inset-0">
+      {live.photoUrls.map((url, i) => (
+        <Image
+          key={i}
+          src={url}
+          alt={i === 0 ? `${live.venue} - ${live.date}` : ""}
+          fill
+          className="object-cover"
+          style={{
+            opacity: i === index ? 1 : 0,
+            transition: "opacity 0.6s ease",
+          }}
+          sizes={
+            large
+              ? "(max-width: 1280px) 66vw, 800px"
+              : "(max-width: 1280px) 33vw, 400px"
+          }
+        />
+      ))}
     </div>
   );
 }
