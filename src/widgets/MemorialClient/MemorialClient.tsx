@@ -54,37 +54,6 @@ export function MemorialClient({ lives, members }: Props) {
     return m;
   }, [lives]);
 
-  const groupedByMonth = useMemo(() => {
-    const map = new Map<string, LiveWithPhotoCount[]>();
-    for (const live of sorted) {
-      const ym = live.date.slice(0, 7); // "YYYY.MM"
-      if (!map.has(ym)) map.set(ym, []);
-      map.get(ym)!.push(live);
-    }
-
-    const result: Array<{
-      ym: string;
-      year: string;
-      shows: LiveWithPhotoCount[];
-      isFirstOfYear: boolean;
-      isLargeLeft: boolean;
-    }> = [];
-
-    for (const [ym, shows] of map) {
-      const year = ym.slice(0, 4);
-      const isFirstOfYear =
-        result.length === 0 || result[result.length - 1].year !== year;
-      result.push({
-        ym,
-        year,
-        shows,
-        isFirstOfYear,
-        isLargeLeft: result.length % 2 === 0,
-      });
-    }
-    return result;
-  }, [sorted]);
-
   return (
     <>
       {/* ── Sticky Jump Bar ── */}
@@ -344,34 +313,19 @@ export function MemorialClient({ lives, members }: Props) {
           })}
         </div>
 
-        {/* デスクトップ: スタッガードレイアウト（月別マイルストーン） */}
+        {/* デスクトップ: 1ライブ = 1マイルストーン行 + ジグザグカード */}
         <div className="hidden sm:block">
-          <div className="space-y-32">
-            {groupedByMonth.map(
-              ({ ym, year, shows, isFirstOfYear, isLargeLeft }) => (
-                <section key={ym} id={isFirstOfYear ? `y${year}` : undefined}>
-                  {/* 年ラベル */}
-                  {isFirstOfYear && (
-                    <div className="mb-8">
-                      <span
-                        style={{
-                          fontFamily:
-                            "var(--font-playfair), 'Noto Serif JP', serif",
-                          fontWeight: 700,
-                          fontStyle: "italic",
-                          fontSize: "clamp(40px, 5vw, 64px)",
-                          color: "var(--memorial-fg)",
-                          letterSpacing: "-0.03em",
-                          lineHeight: 1,
-                        }}
-                      >
-                        {year}
-                      </span>
-                    </div>
-                  )}
+          <div className="space-y-14">
+            {sorted.map((live, i) => {
+              const isCardRight = i % 2 === 0;
+              const year = live.date.slice(0, 4);
+              const isFirstOfYear =
+                i === 0 || sorted[i - 1].date.slice(0, 4) !== year;
 
-                  {/* 月マイルストーンマーカー */}
-                  <div className="mb-6 flex items-center gap-3">
+              return (
+                <div key={live.id} id={isFirstOfYear ? `y${year}` : undefined}>
+                  {/* マイルストーン行 */}
+                  <div className="mb-4 flex items-center gap-3">
                     <div
                       style={{
                         width: 7,
@@ -383,27 +337,45 @@ export function MemorialClient({ lives, members }: Props) {
                     />
                     <span
                       className="font-mono text-[11px] tracking-[0.2em]"
-                      style={{ color: "var(--memorial-fg)" }}
+                      style={{ color: "var(--memorial-fg)", flexShrink: 0 }}
                     >
-                      {ym}
+                      {live.date}
+                    </span>
+                    <span
+                      className="font-mono text-[10px] tracking-[0.12em]"
+                      style={{ color: "var(--memorial-sub)", flexShrink: 0 }}
+                    >
+                      · {live.venue}
                     </span>
                     <div
                       className="flex-1"
-                      style={{ height: 1, background: "var(--memorial-faint)" }}
+                      style={{
+                        height: 1,
+                        background: "var(--memorial-faint)",
+                      }}
                     />
                     <span
-                      className="font-mono text-[10px] tracking-[0.25em] uppercase"
-                      style={{ color: "var(--memorial-sub)" }}
+                      className="font-mono text-[10px] tracking-[0.3em] uppercase"
+                      style={{ color: "var(--memorial-sub)", flexShrink: 0 }}
                     >
-                      {shows.length} {shows.length === 1 ? "show" : "shows"}
+                      {live.weekday}
                     </span>
                   </div>
 
-                  {/* スタッガードレイアウト */}
-                  <MonthLayout shows={shows} isLargeLeft={isLargeLeft} />
-                </section>
-              ),
-            )}
+                  {/* カード（左右ジグザグ） */}
+                  <div
+                    style={{
+                      display: "flex",
+                      justifyContent: isCardRight ? "flex-end" : "flex-start",
+                    }}
+                  >
+                    <div style={{ width: "58%", height: 300 }}>
+                      <BentoCard live={live} style={{ height: "100%" }} />
+                    </div>
+                  </div>
+                </div>
+              );
+            })}
           </div>
         </div>
 
@@ -521,111 +493,6 @@ function ComingSoon({ label }: { label: string }) {
       >
         {label}
       </div>
-    </div>
-  );
-}
-
-// ── スタッガードレイアウト ───────────────────────────────────────
-
-const LARGE_H = 420;
-const SMALL_H = 260;
-const OFFSET_Y = 72; // 小カードを下にずらす量
-
-function MonthLayout({
-  shows,
-  isLargeLeft,
-}: {
-  shows: LiveWithPhotoCount[];
-  isLargeLeft: boolean;
-}) {
-  const primary = shows[0];
-  const secondaries = shows.slice(1, 3);
-  const overflow = shows.slice(3);
-
-  // 1公演: 63% 幅で左右交互に配置
-  if (shows.length === 1) {
-    return (
-      <div
-        style={{
-          display: "flex",
-          justifyContent: isLargeLeft ? "flex-start" : "flex-end",
-        }}
-      >
-        <div style={{ width: "63%", height: LARGE_H }}>
-          <BentoCard live={primary} style={{ height: "100%" }} large />
-        </div>
-      </div>
-    );
-  }
-
-  // 2公演以上: 大カード(61%) + 小カラム(残り) を垂直にずらす
-  const hasTwoSmalls = secondaries.length >= 2;
-  const smallColH = hasTwoSmalls
-    ? Math.floor((LARGE_H - OFFSET_Y - 16) / 2) // 16px = 2列間ギャップ
-    : SMALL_H;
-
-  const largeCol = (
-    <div style={{ flex: "0 0 61%", height: LARGE_H }}>
-      <BentoCard live={primary} style={{ height: "100%" }} large />
-    </div>
-  );
-
-  const smallCol = (
-    <div
-      style={{
-        flex: 1,
-        display: "flex",
-        flexDirection: "column",
-        gap: 16,
-        marginTop: OFFSET_Y,
-      }}
-    >
-      {secondaries.map((show) => (
-        <div key={show.id} style={{ height: smallColH }}>
-          <BentoCard live={show} style={{ height: "100%" }} />
-        </div>
-      ))}
-    </div>
-  );
-
-  return (
-    <div>
-      <div
-        style={{
-          display: "flex",
-          gap: 20,
-          alignItems: "flex-start",
-        }}
-      >
-        {isLargeLeft ? (
-          <>
-            {largeCol}
-            {smallCol}
-          </>
-        ) : (
-          <>
-            {smallCol}
-            {largeCol}
-          </>
-        )}
-      </div>
-
-      {/* 4公演以上の余剰分は均等な行で追加 */}
-      {overflow.length > 0 && (
-        <div
-          style={{
-            display: "flex",
-            gap: 20,
-            marginTop: 20,
-          }}
-        >
-          {overflow.slice(0, 3).map((show) => (
-            <div key={show.id} style={{ flex: 1, height: 240 }}>
-              <BentoCard live={show} style={{ height: "100%" }} />
-            </div>
-          ))}
-        </div>
-      )}
     </div>
   );
 }
