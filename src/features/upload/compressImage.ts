@@ -38,6 +38,29 @@ async function compressToRange(canvas: HTMLCanvasElement): Promise<Blob> {
   return best;
 }
 
+const PREVIEW_MAX_SIDE = 300;
+
+export async function createPreviewThumbnail(file: File): Promise<string> {
+  try {
+    const bitmap = await createImageBitmap(file);
+    const scale = Math.min(
+      PREVIEW_MAX_SIDE / bitmap.width,
+      PREVIEW_MAX_SIDE / bitmap.height,
+      1,
+    );
+    const canvas = document.createElement("canvas");
+    canvas.width = Math.round(bitmap.width * scale);
+    canvas.height = Math.round(bitmap.height * scale);
+    canvas
+      .getContext("2d")!
+      .drawImage(bitmap, 0, 0, canvas.width, canvas.height);
+    bitmap.close();
+    return canvas.toDataURL("image/jpeg", 0.7);
+  } catch {
+    return URL.createObjectURL(file);
+  }
+}
+
 export type ProcessResult = {
   blob: Blob;
   thumbnailBlob: Blob;
