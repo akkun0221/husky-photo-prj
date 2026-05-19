@@ -61,7 +61,10 @@ export async function getLivesWithPhotoCount(): Promise<LiveWithPhotoCount[]> {
       .select("*")
       .is("deleted_at", null)
       .order("date", { ascending: false }),
-    supabase.from("photos").select("id, live_id, r2_url").limit(10000),
+    supabase
+      .from("photos")
+      .select("id, live_id, r2_url, thumbnail_url")
+      .limit(10000),
   ]);
   if (livesError) throw new Error(livesError.message);
   if (photosError) throw new Error(photosError.message);
@@ -72,10 +75,10 @@ export async function getLivesWithPhotoCount(): Promise<LiveWithPhotoCount[]> {
   const urlsByLive = new Map<string, string[]>();
   for (const p of photos ?? []) {
     countByLive.set(p.live_id, (countByLive.get(p.live_id) ?? 0) + 1);
-    urlById.set(p.id, p.r2_url);
+    urlById.set(p.id, p.thumbnail_url ?? p.r2_url);
     const arr = urlsByLive.get(p.live_id) ?? [];
     if (arr.length < SLIDESHOW_PER_LIVE) {
-      arr.push(p.r2_url);
+      arr.push(p.thumbnail_url ?? p.r2_url);
       urlsByLive.set(p.live_id, arr);
     }
   }
@@ -158,7 +161,7 @@ export async function getLivesFeedYear(
   const [{ data: photos, error: photosError }] = await Promise.all([
     supabase
       .from("photos")
-      .select("id, live_id, r2_url")
+      .select("id, live_id, r2_url, thumbnail_url")
       .in("live_id", liveIds),
   ]);
   if (photosError) throw new Error(photosError.message);
@@ -168,10 +171,10 @@ export async function getLivesFeedYear(
   const urlsByLive = new Map<string, string[]>();
   for (const p of photos ?? []) {
     countByLive.set(p.live_id, (countByLive.get(p.live_id) ?? 0) + 1);
-    urlById.set(p.id, p.r2_url);
+    urlById.set(p.id, p.thumbnail_url ?? p.r2_url);
     const arr = urlsByLive.get(p.live_id) ?? [];
     if (arr.length < FEED_SLIDESHOW_PER_LIVE) {
-      arr.push(p.r2_url);
+      arr.push(p.thumbnail_url ?? p.r2_url);
       urlsByLive.set(p.live_id, arr);
     }
   }

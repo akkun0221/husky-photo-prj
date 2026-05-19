@@ -33,6 +33,11 @@ type Props = {
   totalPhotos: number;
 };
 
+function hashSeed(id: string, salt: number): number {
+  const v = parseInt(id.replace(/-/g, "").slice(0, 8), 16);
+  return Math.sin(v * (salt + 1) * 13.7);
+}
+
 function hashTilt(id: string): number {
   const v = parseInt(id.replace(/-/g, "")[0], 16);
   return ((v % 13) - 6) * 0.4;
@@ -241,9 +246,46 @@ export function MemorialClient({
             2022年12月10日に池袋SOUND
             PEACEでhuskyと出会い、気づけば解散まで追い続けていました。
             <br />
-            上がっている{totalLives}
+            上がっている
+            <span
+              style={{
+                fontFamily: "var(--serif)",
+                fontStyle: "italic",
+                fontWeight: 700,
+                fontSize: 22,
+                color: "var(--memorial-accent)",
+                verticalAlign: "-2px",
+                margin: "0 3px",
+              }}
+            >
+              {totalLives}
+            </span>
             公演の写真は参戦したライブの記録です。まったりアップロードしていくのでゆるりとご覧ください。
           </p>
+        </div>
+
+        <div
+          style={{
+            display: "flex",
+            alignItems: "baseline",
+            gap: 18,
+            flexWrap: "wrap",
+            marginBottom: 32,
+            fontFamily: "var(--mono)",
+            fontSize: 11,
+            letterSpacing: "0.3em",
+            textTransform: "uppercase",
+            color: "var(--memorial-sub)",
+          }}
+        >
+          <span>2022.12.10 — 2026.04.27</span>
+          <span style={{ opacity: 0.5 }}>·</span>
+          <span
+            style={{ color: "var(--memorial-accent)" }}
+            className="mem-pulse-dot"
+          >
+            disbanded
+          </span>
         </div>
 
         <div style={{ display: "flex", gap: 40, flexWrap: "wrap" }}>
@@ -357,142 +399,381 @@ type SpreadProps = {
 };
 
 function ScrapbookSpread({ live, flip, tilt }: SpreadProps) {
+  const seed = parseInt(live.id.replace(/-/g, "").slice(0, 8), 16) || 0;
+  const tilt1 = ((hashSeed(live.id, 0) + 1) / 2) * 6 - 3;
+  const tilt2 = ((hashSeed(live.id, 1) + 1) / 2) * 6 - 3;
+  const tilt3 = ((hashSeed(live.id, 2) + 1) / 2) * 6 - 3;
+  const tapeRot = ((seed % 5) - 2) * 4;
   const stampRot = tilt * 2.5;
 
+  // モバイル用: 写真の端寄せ幅とオフセット
+  const widths = ["46%", "52%", "48%", "54%"];
+  const widthOf = widths[seed % widths.length];
+  const insetVal = ["4%", "8%", "2%"][seed % 3];
+
+  const dateDay = live.date.split(".")[2];
+  const dateMonthYear = live.date.split(".").slice(0, 2).join(".");
+
   return (
-    <div
-      className="grid grid-cols-1 sm:grid-cols-2"
-      style={{
-        gap: 24,
-        padding: "28px 16px",
-        borderTop: "1px solid var(--memorial-faint)",
-      }}
-    >
-      {/* Photo side */}
-      <div
-        className={flip ? "sm:order-2" : "sm:order-1"}
+    <>
+      {/* ── Mobile card（sm未満） ── */}
+      <article
+        className="sm:hidden"
         style={{
-          transform: `rotate(${tilt}deg)`,
-          transformOrigin: "center center",
+          position: "relative",
+          padding: "72px 16px 56px",
+          minHeight: 420,
+          borderTop: "1px solid var(--memorial-faint)",
         }}
       >
-        <PhotoStage
-          urls={live.photoUrls}
-          aspect="4/3"
-          shape="rect"
-          filter="mem-photo"
-        />
-      </div>
+        {/* 写真: polaroid, 端寄せ */}
+        <div
+          style={{
+            position: "relative",
+            width: widthOf,
+            marginLeft: flip ? "auto" : insetVal,
+            marginRight: flip ? insetVal : "auto",
+            transform: `rotate(${tilt1}deg)`,
+          }}
+        >
+          <PhotoStage
+            urls={live.photoUrls.slice(0, 1)}
+            aspect="4/5"
+            shape="polaroid"
+            filter="mem-photo-warm"
+          >
+            <TapeStrip
+              top={-10}
+              left={flip ? "30%" : "60%"}
+              rot={tapeRot}
+              width={70}
+            />
+          </PhotoStage>
+        </div>
 
-      {/* Text side */}
-      <div
-        className={`relative flex flex-col justify-center gap-3 px-4 py-5 sm:px-6 ${flip ? "sm:order-1" : "sm:order-2"}`}
-      >
-        {/* Hand-stamp circle */}
+        {/* 小さな赤スタンプ（写真の対角側） */}
         <div
           aria-hidden="true"
           style={{
             position: "absolute",
-            top: 10,
-            right: flip ? "auto" : 12,
-            left: flip ? 12 : "auto",
-            width: 68,
-            height: 68,
+            top: 60,
+            ...(flip ? { left: 18 } : { right: 18 }),
+            width: 64,
+            height: 64,
             borderRadius: "50%",
-            border: "2px solid var(--memorial-accent)",
+            border: "2px solid rgba(184,90,58,0.65)",
+            color: "rgba(184,90,58,0.8)",
             display: "flex",
+            flexDirection: "column",
             alignItems: "center",
             justifyContent: "center",
-            transform: `rotate(${stampRot}deg)`,
-            opacity: 0.45,
-            pointerEvents: "none",
-            flexShrink: 0,
-          }}
-        >
-          <span
-            style={{
-              fontFamily: "var(--mono)",
-              fontSize: 8,
-              letterSpacing: "0.18em",
-              textTransform: "uppercase",
-              color: "var(--memorial-accent)",
-              textAlign: "center",
-              lineHeight: 1.6,
-            }}
-          >
-            {live.date.slice(0, 4)}
-            <br />
-            husky
-          </span>
-        </div>
-
-        <div
-          style={{
-            fontFamily: "var(--mono)",
-            fontSize: 10,
-            letterSpacing: "0.35em",
+            transform: `rotate(${(seed % 9) - 4}deg)`,
+            fontFamily: "var(--type)",
             textTransform: "uppercase",
-            color: "var(--memorial-sub)",
+            textAlign: "center",
+            pointerEvents: "none",
           }}
         >
-          {live.weekday} · {live.date}
-        </div>
-
-        <div
-          style={{
-            fontFamily: "var(--serif)",
-            fontStyle: "italic",
-            fontWeight: 700,
-            fontSize: "clamp(22px, 3vw, 34px)",
-            lineHeight: 1.05,
-            letterSpacing: "-0.02em",
-            color: "var(--memorial-fg)",
-          }}
-        >
-          {live.title || live.venue}
-        </div>
-
-        {live.title && (
+          <div style={{ fontSize: 7, letterSpacing: "0.16em" }}>night</div>
           <div
             style={{
-              fontFamily: "var(--type)",
-              fontSize: 11,
-              letterSpacing: "0.18em",
+              fontFamily: "var(--serif)",
+              fontStyle: "italic",
+              fontWeight: 700,
+              fontSize: 20,
+              letterSpacing: "-0.02em",
+              lineHeight: 1,
+            }}
+          >
+            {dateDay}
+          </div>
+          <div style={{ fontSize: 7, letterSpacing: "0.16em" }}>
+            {dateMonthYear.slice(-5)}
+          </div>
+        </div>
+
+        {/* テキスト: 写真の対角側 */}
+        <div
+          style={{
+            marginTop: 28,
+            width: "78%",
+            marginLeft: flip ? 0 : "auto",
+            marginRight: flip ? "auto" : 0,
+            textAlign: flip ? "left" : "right",
+          }}
+        >
+          <div
+            style={{
+              fontFamily: "var(--mono)",
+              fontSize: 9,
+              letterSpacing: "0.3em",
               textTransform: "uppercase",
               color: "var(--memorial-sub)",
             }}
           >
-            {live.venue}
+            {live.weekday}
           </div>
-        )}
-
-        <Link
-          href={`/lives/${live.id}`}
-          style={{
-            display: "inline-flex",
-            alignItems: "center",
-            gap: 8,
-            fontFamily: "var(--mono)",
-            fontSize: 10,
-            letterSpacing: "0.35em",
-            textTransform: "uppercase",
-            color: "var(--memorial-accent)",
-            textDecoration: "none",
-            marginTop: 4,
-          }}
-        >
-          <span
+          <div
             style={{
-              display: "inline-block",
-              width: 20,
-              height: 1,
-              background: "var(--memorial-accent)",
+              fontFamily: "var(--serif)",
+              fontStyle: "italic",
+              fontWeight: 300,
+              fontSize: 44,
+              lineHeight: 0.95,
+              letterSpacing: "-0.03em",
+              marginTop: 4,
+            }}
+          >
+            <span>
+              {live.date.split(".")[0]}.{live.date.split(".")[1]}.
+            </span>
+            <span style={{ color: "var(--memorial-accent)" }}>{dateDay}</span>
+          </div>
+          <div
+            style={{
+              fontFamily: "var(--serif)",
+              fontStyle: "italic",
+              fontWeight: 700,
+              fontSize: "clamp(16px, 4vw, 22px)",
+              lineHeight: 1.2,
+              marginTop: 10,
+              color: "var(--memorial-fg)",
+            }}
+          >
+            {live.title || live.venue}
+          </div>
+          {live.title && (
+            <div
+              style={{
+                fontFamily: "var(--mono)",
+                fontSize: 10,
+                letterSpacing: "0.22em",
+                textTransform: "uppercase",
+                color: "var(--memorial-sub)",
+                marginTop: 4,
+              }}
+            >
+              @ {live.venue}
+            </div>
+          )}
+          <Link
+            href={`/lives/${live.id}`}
+            style={{
+              display: "inline-flex",
+              alignItems: "center",
+              gap: 8,
+              fontFamily: "var(--mono)",
+              fontSize: 9,
+              letterSpacing: "0.3em",
+              textTransform: "uppercase",
+              color: "var(--memorial-accent)",
+              textDecoration: "none",
+              marginTop: 18,
+              flexDirection: flip ? "row" : "row-reverse",
+            }}
+          >
+            <svg
+              width="22"
+              height="8"
+              viewBox="0 0 22 8"
+              fill="none"
+              style={{ transform: flip ? "none" : "scaleX(-1)" }}
+            >
+              <path
+                d="M0 4h18M14 1l4 3-4 3"
+                stroke="currentColor"
+                strokeWidth="1"
+              />
+            </svg>
+            view {live.photoCount} photos
+          </Link>
+        </div>
+      </article>
+
+      {/* ── Desktop spread（sm以上） ── */}
+      <div
+        className="hidden sm:grid sm:grid-cols-2"
+        style={{
+          gap: 24,
+          padding: "48px 16px",
+          minHeight: 520,
+          borderTop: "1px solid var(--memorial-faint)",
+          position: "relative",
+        }}
+      >
+        {/* Photo cluster */}
+        <div
+          className={flip ? "sm:order-2" : "sm:order-1"}
+          style={{ position: "relative", minHeight: 480 }}
+        >
+          {/* polaroid: 70% width */}
+          <div
+            style={{
+              position: "absolute",
+              top: 0,
+              left: 0,
+              width: "70%",
+              transform: `rotate(${tilt1}deg)`,
+            }}
+          >
+            <PhotoStage
+              urls={live.photoUrls.slice(0, 2)}
+              aspect="4/5"
+              shape="polaroid"
+              filter="mem-photo-warm"
+            >
+              <TapeStrip top={-12} left="20%" rot={-6} width={80} />
+            </PhotoStage>
+          </div>
+          {/* inset rect: 55% width */}
+          <div
+            style={{
+              position: "absolute",
+              top: 180,
+              right: 0,
+              width: "55%",
+              transform: `rotate(${tilt2}deg)`,
+            }}
+          >
+            <PhotoStage
+              urls={live.photoUrls.slice(1, 4)}
+              aspect="4/3"
+              shape="inset"
+              filter="mem-photo"
+            />
+          </div>
+          {/* inset square: 40% width */}
+          {live.photoUrls.length >= 2 && (
+            <div
+              style={{
+                position: "absolute",
+                top: 320,
+                left: "18%",
+                width: "40%",
+                transform: `rotate(${tilt3}deg)`,
+              }}
+            >
+              <PhotoStage
+                urls={live.photoUrls.slice(2, 5)}
+                aspect="1/1"
+                shape="inset"
+                filter="mem-photo-warm"
+              />
+              <TapeStrip top={-10} left="40%" rot={12} width={80} />
+            </div>
+          )}
+        </div>
+
+        {/* Text side */}
+        <div
+          className={`relative flex flex-col justify-center gap-3 px-4 py-5 sm:px-6 ${flip ? "sm:order-1" : "sm:order-2"}`}
+        >
+          {/* Hand-stamp circle */}
+          <div
+            aria-hidden="true"
+            style={{
+              position: "absolute",
+              top: 10,
+              right: flip ? "auto" : 12,
+              left: flip ? 12 : "auto",
+              width: 88,
+              height: 88,
+              borderRadius: "50%",
+              border: "2px solid var(--memorial-accent)",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              transform: `rotate(${stampRot}deg)`,
+              opacity: 0.45,
+              pointerEvents: "none",
               flexShrink: 0,
             }}
-          />
-          view {live.photoCount} photos
-        </Link>
+          >
+            <span
+              style={{
+                fontFamily: "var(--mono)",
+                fontSize: 8,
+                letterSpacing: "0.18em",
+                textTransform: "uppercase",
+                color: "var(--memorial-accent)",
+                textAlign: "center",
+                lineHeight: 1.6,
+              }}
+            >
+              {live.date.slice(0, 4)}
+              <br />
+              husky
+            </span>
+          </div>
+
+          <div
+            style={{
+              fontFamily: "var(--mono)",
+              fontSize: 10,
+              letterSpacing: "0.35em",
+              textTransform: "uppercase",
+              color: "var(--memorial-sub)",
+            }}
+          >
+            {live.weekday} · {live.date}
+          </div>
+
+          <div
+            style={{
+              fontFamily: "var(--serif)",
+              fontStyle: "italic",
+              fontWeight: 700,
+              fontSize: "clamp(22px, 3vw, 34px)",
+              lineHeight: 1.05,
+              letterSpacing: "-0.02em",
+              color: "var(--memorial-fg)",
+            }}
+          >
+            {live.title || live.venue}
+          </div>
+
+          {live.title && (
+            <div
+              style={{
+                fontFamily: "var(--type)",
+                fontSize: 11,
+                letterSpacing: "0.18em",
+                textTransform: "uppercase",
+                color: "var(--memorial-sub)",
+              }}
+            >
+              {live.venue}
+            </div>
+          )}
+
+          <Link
+            href={`/lives/${live.id}`}
+            style={{
+              display: "inline-flex",
+              alignItems: "center",
+              gap: 8,
+              fontFamily: "var(--mono)",
+              fontSize: 10,
+              letterSpacing: "0.35em",
+              textTransform: "uppercase",
+              color: "var(--memorial-accent)",
+              textDecoration: "none",
+              marginTop: 4,
+            }}
+          >
+            <span
+              style={{
+                display: "inline-block",
+                width: 20,
+                height: 1,
+                background: "var(--memorial-accent)",
+                flexShrink: 0,
+              }}
+            />
+            view {live.photoCount} photos
+          </Link>
+        </div>
       </div>
-    </div>
+    </>
   );
 }

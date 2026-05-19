@@ -42,16 +42,29 @@ export default async function MembersPage() {
             style={{
               fontFamily: "var(--serif)",
               fontStyle: "italic",
-              fontWeight: 700,
-              fontSize: "clamp(40px, 8vw, 80px)",
-              lineHeight: 0.92,
-              letterSpacing: "-0.03em",
+              fontWeight: 300,
+              fontSize: "clamp(96px, 12vw, 200px)",
+              lineHeight: 0.9,
+              letterSpacing: "-0.035em",
               color: "var(--memorial-fg)",
-              margin: "0 0 28px",
+              margin: "10px 0 4px",
             }}
           >
             Members
+            <span style={{ color: "var(--memorial-accent)" }}>.</span>
           </h1>
+          <div
+            style={{
+              fontFamily: "var(--mono)",
+              fontSize: 11,
+              letterSpacing: "0.3em",
+              textTransform: "uppercase",
+              color: "var(--memorial-sub)",
+              marginBottom: 28,
+            }}
+          >
+            showing all {members.length} members
+          </div>
 
           {/* Member filter */}
           <Suspense>
