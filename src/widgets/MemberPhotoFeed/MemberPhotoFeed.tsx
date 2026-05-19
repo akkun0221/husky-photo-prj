@@ -70,35 +70,58 @@ export function MemberPhotoFeed() {
   }
 
   return (
-    <div className="space-y-14">
+    <div>
       {groups.map(({ live, photos }) => (
-        <section key={live.id}>
+        <section
+          key={live.id}
+          style={{ borderBottom: "1px solid var(--memorial-faint)" }}
+        >
+          {/* グループヘッダー */}
           <div
-            className="mb-4 px-0"
-            style={{
-              borderBottom: "1px solid var(--memorial-rule)",
-              paddingBottom: 8,
-            }}
+            className="px-4 py-5 sm:px-16"
+            style={{ borderBottom: "1px solid var(--memorial-faint)" }}
           >
             <div
-              className="font-mono text-[10px] tracking-[0.35em] uppercase"
-              style={{ color: "var(--memorial-accent)" }}
+              style={{
+                fontFamily: "var(--mono)",
+                fontSize: 10,
+                letterSpacing: "0.35em",
+                textTransform: "uppercase",
+                color: "var(--memorial-sub)",
+                marginBottom: 6,
+              }}
             >
               {calcWeekday(live.date)} · {live.date}
             </div>
             <h2
-              className="mt-1 text-base font-medium sm:text-lg"
-              style={{ color: "var(--memorial-fg)" }}
+              style={{
+                fontFamily: "var(--serif)",
+                fontStyle: "italic",
+                fontWeight: 700,
+                fontSize: "clamp(18px, 2.5vw, 26px)",
+                lineHeight: 1.05,
+                letterSpacing: "-0.01em",
+                color: "var(--memorial-fg)",
+                margin: "0 0 4px",
+              }}
             >
               {live.title || live.venue}
             </h2>
-            <div
-              className="mt-0.5 font-mono text-[10px] tracking-[0.2em]"
-              style={{ color: "var(--memorial-sub)" }}
-            >
-              {live.venue}
-            </div>
+            {live.title && (
+              <div
+                style={{
+                  fontFamily: "var(--type)",
+                  fontSize: 10,
+                  letterSpacing: "0.18em",
+                  textTransform: "uppercase",
+                  color: "var(--memorial-sub)",
+                }}
+              >
+                {live.venue}
+              </div>
+            )}
           </div>
+
           <PhotoListProvider photos={photos} hasMore={false}>
             <PhotoGrid />
           </PhotoListProvider>
@@ -109,8 +132,14 @@ export function MemberPhotoFeed() {
       {hasNextPage && (
         <div
           ref={sentinelRef}
-          className="py-8 text-center font-mono text-[11px] tracking-[0.3em] uppercase"
-          style={{ color: "var(--memorial-sub)" }}
+          className="py-10 text-center"
+          style={{
+            fontFamily: "var(--mono)",
+            fontSize: 10,
+            letterSpacing: "0.3em",
+            textTransform: "uppercase",
+            color: "var(--memorial-sub)",
+          }}
         >
           {isFetchingNextPage ? "loading..." : ""}
         </div>

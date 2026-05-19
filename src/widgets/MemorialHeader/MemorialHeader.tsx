@@ -1,18 +1,16 @@
 "use client";
-
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 
 const NAV = [
-  { href: "/", label: "top" },
-  { href: "/lives", label: "lives" },
-  { href: "/members", label: "members" },
-];
+  { href: "/", key: "top", label: "top" },
+  { href: "/lives", key: "lives", label: "lives" },
+  { href: "/members", key: "members", label: "members" },
+] as const;
 
 export function MemorialHeader() {
   const pathname = usePathname();
 
-  // /lives/[id] のような子パスも /lives としてアクティブ判定する
   function isActive(href: string) {
     if (href === "/") return pathname === "/";
     return pathname.startsWith(href);
@@ -20,34 +18,62 @@ export function MemorialHeader() {
 
   return (
     <header
-      className="relative flex items-center justify-between border-b px-4 py-4 sm:px-16 sm:py-8"
+      className="relative flex items-center justify-between px-4 py-4 sm:px-16 sm:py-5"
       style={{
-        borderColor: "var(--memorial-rule)",
+        borderBottom: "1px solid var(--memorial-rule)",
         background: "rgba(10,8,7,0.92)",
+        backdropFilter: "blur(8px)",
+        zIndex: 6,
       }}
     >
+      {/* Left — brand */}
       <div className="flex items-center gap-3">
-        {/* accent dot */}
+        {/* tape-tilted 琥珀□ */}
         <div
-          className="h-2 w-2 flex-shrink-0"
-          style={{ background: "var(--memorial-accent)" }}
+          style={{
+            width: 10,
+            height: 10,
+            background: "var(--memorial-accent)",
+            transform: "rotate(-12deg)",
+            boxShadow: "0 2px 4px rgba(0,0,0,0.4)",
+            flexShrink: 0,
+          }}
         />
         <Link
           href="/"
-          className="text-base font-semibold tracking-wider sm:text-lg"
-          style={{
-            color: "var(--memorial-fg)",
-            fontFamily: "var(--font-geist-sans), sans-serif",
-            letterSpacing: "0.04em",
-          }}
+          className="inline-flex items-baseline gap-1 no-underline"
         >
-          husky&nbsp;photo
+          <span
+            style={{
+              fontFamily: "var(--serif)",
+              fontStyle: "italic",
+              fontWeight: 700,
+              fontSize: 26,
+              letterSpacing: "-0.02em",
+              color: "var(--memorial-fg)",
+            }}
+          >
+            husky
+          </span>
+          <span
+            style={{
+              fontFamily: "var(--type)",
+              fontSize: 12,
+              letterSpacing: "0.32em",
+              textTransform: "uppercase",
+              color: "var(--memorial-sub)",
+              transform: "translateY(-2px)",
+              display: "inline-block",
+            }}
+          >
+            photo
+          </span>
         </Link>
         <Link
           href="/login"
           aria-label="管理画面"
-          style={{ color: "var(--memorial-sub)" }}
           className="ml-1 flex items-center"
+          style={{ color: "var(--memorial-sub)" }}
         >
           <svg
             width="11"
@@ -73,21 +99,33 @@ export function MemorialHeader() {
         </Link>
       </div>
 
-      <nav className="flex gap-5 sm:gap-10">
-        {NAV.map((item) => (
-          <Link
-            key={item.href}
-            href={item.href}
-            className="text-[10px] font-medium tracking-[0.2em] uppercase transition-colors sm:text-xs sm:tracking-[0.32em]"
-            style={{
-              color: isActive(item.href)
-                ? "var(--memorial-fg)"
-                : "var(--memorial-sub)",
-            }}
-          >
-            {item.label}
-          </Link>
-        ))}
+      {/* Right — tape-tilt nav */}
+      <nav className="flex items-center gap-1.5 sm:gap-2">
+        {NAV.map((item, i) => {
+          const active = isActive(item.href);
+          return (
+            <Link
+              key={item.href}
+              href={item.href}
+              style={{
+                padding: "7px 12px",
+                textDecoration: "none",
+                color: active ? "#1a120a" : "var(--memorial-fg)",
+                background: active ? "var(--memorial-accent)" : "transparent",
+                border: `1px solid ${active ? "var(--memorial-accent)" : "var(--memorial-rule)"}`,
+                fontFamily: "var(--type)",
+                fontSize: 11,
+                letterSpacing: "0.22em",
+                textTransform: "uppercase",
+                transform: `rotate(${(i % 2 === 0 ? -1 : 1) * 0.6}deg)`,
+                transition: "background .2s, color .2s",
+                display: "inline-block",
+              }}
+            >
+              {item.label}
+            </Link>
+          );
+        })}
       </nav>
     </header>
   );

@@ -133,15 +133,134 @@
   }
 }
 
-/* Memorial デザイントークン */
+/* Memorial デザイントークン V2+ */
 :root {
-  --memorial-bg: #0a0807;
-  --memorial-surface: #13100e;
-  --memorial-fg: #ece6d8;
-  --memorial-sub: rgba(236, 230, 216, 0.55);
-  --memorial-faint: rgba(236, 230, 216, 0.15);
-  --memorial-rule: rgba(236, 230, 216, 0.12);
-  --memorial-accent: #c84a3a;
+  --memorial-bg: #0c0805;
+  --memorial-surface: #16100a;
+  --memorial-fg: #f0e3c8;
+  --memorial-sub: rgba(240, 227, 200, 0.55);
+  --memorial-faint: rgba(240, 227, 200, 0.08);
+  --memorial-rule: rgba(240, 227, 200, 0.14);
+  --memorial-accent: #d2823a;
+  --memorial-accent-hot: #e8a25c;
+  --memorial-ember: #b85a3a;
+  --memorial-ink: #1a120a;
+  --memorial-paper: #e9dbc0;
+
+  /* フォントスタック */
+  --serif: var(--font-playfair), "Shippori Mincho", "Noto Serif JP", serif;
+  --serif-alt: var(--font-garamond), var(--font-shippori), serif;
+  --jp: var(--font-shippori), "Noto Serif JP", serif;
+  --mono: var(--font-jetbrains), ui-monospace, monospace;
+  --type: var(--font-special-elite), var(--font-jetbrains), monospace;
+
+  /* 既存変数との互換 */
   --font-playfair: var(--font-playfair);
   --font-garamond: var(--font-garamond);
+}
+
+/* ── 写真フィルター ── */
+.mem-photo {
+  filter: sepia(0.32) saturate(0.95) contrast(1.08) brightness(0.86)
+    hue-rotate(-6deg);
+}
+.mem-photo-warm {
+  filter: sepia(0.48) saturate(1.05) contrast(1.1) brightness(0.82)
+    hue-rotate(-8deg);
+}
+
+/* ── グレインオーバーレイ ── */
+.mem-grain {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='220' height='220'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='1.6' numOctaves='2' stitchTiles='stitch'/><feColorMatrix values='0 0 0 0 0.95  0 0 0 0 0.85  0 0 0 0 0.65  0 0 0 0.55 0'/></filter><rect width='100%25' height='100%25' filter='url(%23n)' opacity='0.55'/></svg>");
+  mix-blend-mode: overlay;
+  opacity: 0.45;
+  z-index: 1;
+}
+.mem-vignette {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: radial-gradient(
+    ellipse at 50% 30%,
+    transparent 30%,
+    rgba(0, 0, 0, 0.45) 100%
+  );
+  z-index: 1;
+}
+
+/* ── マーキー ── */
+.mem-marquee {
+  display: flex;
+  gap: 48px;
+  white-space: nowrap;
+  animation: mem-marquee 60s linear infinite;
+}
+@keyframes mem-marquee {
+  from {
+    transform: translateX(0);
+  }
+  to {
+    transform: translateX(-50%);
+  }
+}
+
+/* ── フリッカー（thank you / REC） ── */
+.mem-flicker {
+  animation: mem-flicker 7s steps(1, end) infinite;
+}
+@keyframes mem-flicker {
+  0%,
+  96%,
+  100% {
+    opacity: 1;
+  }
+  97% {
+    opacity: 0.4;
+  }
+  98% {
+    opacity: 1;
+  }
+  99% {
+    opacity: 0.7;
+  }
+}
+
+/* ── パルスドット（REC● 用） ── */
+.mem-pulse-dot::after {
+  content: "";
+  display: inline-block;
+  width: 6px;
+  height: 6px;
+  background: var(--memorial-ember);
+  border-radius: 50%;
+  margin-left: 8px;
+  vertical-align: middle;
+  animation: mem-pulse 1.6s ease-in-out infinite;
+}
+@keyframes mem-pulse {
+  0%,
+  100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.3;
+    transform: scale(0.7);
+  }
+}
+
+/* ── 水平ドリフト（写真背景用） ── */
+.mem-drift-h {
+  animation: mem-drift-h 30s ease-in-out infinite alternate;
+}
+@keyframes mem-drift-h {
+  from {
+    transform: translateX(0);
+  }
+  to {
+    transform: translateX(-8px);
+  }
 }

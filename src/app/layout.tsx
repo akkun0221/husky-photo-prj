@@ -1,5 +1,12 @@
 import type { Metadata } from "next";
-import { Geist, Playfair_Display, EB_Garamond } from "next/font/google";
+import {
+  Geist,
+  Playfair_Display,
+  EB_Garamond,
+  Shippori_Mincho,
+  JetBrains_Mono,
+  Special_Elite,
+} from "next/font/google";
 import { QueryProvider } from "@/shared/providers/QueryProvider";
 import { YouTubeBackground } from "@/widgets/YouTubeBackground/YouTubeBackground";
 import "./globals.css";
@@ -21,6 +28,24 @@ const ebGaramond = EB_Garamond({
   subsets: ["latin"],
   weight: ["400"],
   style: ["normal", "italic"],
+});
+
+const shipporiMincho = Shippori_Mincho({
+  variable: "--font-shippori",
+  subsets: ["latin"],
+  weight: ["400", "600", "800"],
+});
+
+const jetbrainsMono = JetBrains_Mono({
+  variable: "--font-jetbrains",
+  subsets: ["latin"],
+  weight: ["300", "400", "600"],
+});
+
+const specialElite = Special_Elite({
+  variable: "--font-special-elite",
+  subsets: ["latin"],
+  weight: ["400"],
 });
 
 export const metadata: Metadata = {
@@ -49,7 +74,7 @@ export default function RootLayout({
   return (
     <html
       lang="ja"
-      className={`${geistSans.variable} ${playfair.variable} ${ebGaramond.variable} h-full antialiased`}
+      className={`${geistSans.variable} ${playfair.variable} ${ebGaramond.variable} ${shipporiMincho.variable} ${jetbrainsMono.variable} ${specialElite.variable} h-full antialiased`}
     >
       <body className="flex min-h-full flex-col">
         <YouTubeBackground />
