@@ -1,4 +1,6 @@
 import { forwardRef } from "react";
+import { PhotoStage } from "@/widgets/Memorial/PhotoStage";
+import { TapeStrip } from "@/widgets/Memorial/TapeStrip";
 
 type Props = {
   year: string;
@@ -6,6 +8,7 @@ type Props = {
   chapterIdx: number;
   active: boolean;
   subLabel?: string;
+  polaroidUrl?: string;
 };
 
 const CHAPTERS = ["Ⅰ", "Ⅱ", "Ⅲ", "Ⅳ", "Ⅴ", "Ⅵ", "Ⅶ", "Ⅷ"];
@@ -18,10 +21,16 @@ const YEAR_LABELS: Record<string, string> = {
   "2026": "終演の年 — 4.27 解散。",
 };
 
+function hashTilt(year: string): number {
+  const v = parseInt(year, 10) % 7;
+  return (v % 2 === 0 ? -1 : 1) * ((v % 3) + 1) * 0.6;
+}
+
 export const StickyYearBand = forwardRef<HTMLDivElement, Props>(
-  ({ year, count, chapterIdx, active, subLabel }, ref) => {
+  ({ year, count, chapterIdx, active, subLabel, polaroidUrl }, ref) => {
     const label = subLabel ?? YEAR_LABELS[year] ?? "";
     const chapter = CHAPTERS[chapterIdx] ?? String(chapterIdx + 1);
+    const tilt = hashTilt(year);
 
     return (
       <div
@@ -82,7 +91,7 @@ export const StickyYearBand = forwardRef<HTMLDivElement, Props>(
         </div>
 
         {/* 章・サブ文言 */}
-        <div>
+        <div className="flex-1">
           <div
             style={{
               fontFamily: "var(--type)",
@@ -112,6 +121,28 @@ export const StickyYearBand = forwardRef<HTMLDivElement, Props>(
             </div>
           )}
         </div>
+
+        {/* ポラロイド写真（ライブ一覧ページでのみ表示） */}
+        {polaroidUrl && (
+          <div
+            className="hidden sm:block"
+            style={{
+              width: 64,
+              transform: `rotate(${tilt}deg)`,
+              flexShrink: 0,
+              position: "relative",
+            }}
+          >
+            <PhotoStage
+              urls={[polaroidUrl]}
+              aspect="4/5"
+              shape="polaroid"
+              filter="mem-photo-warm"
+            >
+              <TapeStrip top={-6} left="50%" rot={-6} width={60} />
+            </PhotoStage>
+          </div>
+        )}
       </div>
     );
   },

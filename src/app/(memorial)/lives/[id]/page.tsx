@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { Suspense } from "react";
 import Link from "next/link";
-import { getLiveById } from "@/entities/live/api";
+import { getLiveById, getLivesWithPhotoCount } from "@/entities/live/api";
 import { getMembers } from "@/entities/member/api";
 import { createAdminClient } from "@/shared/lib/supabase/admin";
 import { MemorialHeader } from "@/widgets/MemorialHeader/MemorialHeader";
@@ -14,6 +14,8 @@ type Props = {
 };
 
 const WEEKDAYS = ["SUN", "MON", "TUE", "WED", "THU", "FRI", "SAT"] as const;
+const YEARS = ["2022", "2023", "2024", "2025", "2026"];
+const CHAPTERS = ["Ⅰ", "Ⅱ", "Ⅲ", "Ⅳ", "Ⅴ"];
 
 function calcWeekday(dateStr: string): string {
   const [y, m, d] = dateStr.split(".").map(Number);
@@ -46,8 +48,25 @@ export async function generateStaticParams() {
 export default async function LiveDetailPage({ params }: Props) {
   const { id } = await params;
 
-  const [live, members] = await Promise.all([getLiveById(id), getMembers()]);
+  const [live, members, allLives] = await Promise.all([
+    getLiveById(id),
+    getMembers(),
+    getLivesWithPhotoCount(),
+  ]);
+
   const weekday = calcWeekday(live.date);
+  const yearStr = live.date.slice(0, 4);
+  const chapterStr = CHAPTERS[YEARS.indexOf(yearStr)] ?? "";
+
+  // 写真ありのライブを日付昇順でソートし、通し番号を算出
+  const livesWithPhotos = [...allLives]
+    .filter((l) => l.hasPhotos)
+    .sort((a, b) => a.date.localeCompare(b.date));
+  const entryIdx = livesWithPhotos.findIndex((l) => l.id === id);
+  const entryNo = entryIdx >= 0 ? entryIdx + 1 : null;
+
+  // 日付を「年.月.日」に分割してアクセントカラー適用
+  const dateParts = live.date.split(".");
 
   return (
     <div>
@@ -77,67 +96,147 @@ export default async function LiveDetailPage({ params }: Props) {
             ← lives
           </Link>
 
-          {/* Weekday + venue */}
+          {/* Header grid: 情報 + 赤スタンプ */}
           <div
             style={{
-              fontFamily: "var(--mono)",
-              fontSize: 10,
-              letterSpacing: "0.35em",
-              textTransform: "uppercase",
-              color: "var(--memorial-sub)",
-              marginBottom: 10,
+              display: "grid",
+              gridTemplateColumns: "1fr auto",
+              alignItems: "end",
+              gap: 32,
+              paddingBottom: 32,
             }}
           >
-            {weekday} · {live.venue}
-          </div>
+            <div>
+              {/* サブタイトル: live · chapter Ⅰ · entry N */}
+              <div
+                style={{
+                  fontFamily: "var(--type)",
+                  fontSize: 12,
+                  letterSpacing: "0.4em",
+                  textTransform: "uppercase",
+                  color: "var(--memorial-accent)",
+                  marginBottom: 12,
+                }}
+              >
+                live · chapter {chapterStr}
+                {entryNo !== null && (
+                  <> · entry {String(entryNo).padStart(2, "0")}</>
+                )}
+              </div>
 
-          {/* Date — giant serif italic */}
-          <h1
-            style={{
-              fontFamily: "var(--serif)",
-              fontStyle: "italic",
-              fontWeight: 700,
-              fontSize: "clamp(40px, 7vw, 80px)",
-              lineHeight: 0.95,
-              letterSpacing: "-0.03em",
-              color: "var(--memorial-fg)",
-              margin: "0 0 14px",
-            }}
-          >
-            {live.date}
-          </h1>
+              {/* 日付 — 「日」部分をアクセントカラー */}
+              <h1
+                style={{
+                  fontFamily: "var(--serif)",
+                  fontStyle: "italic",
+                  fontWeight: 300,
+                  fontSize: "clamp(40px, 7vw, 80px)",
+                  lineHeight: 0.95,
+                  letterSpacing: "-0.03em",
+                  margin: "0 0 14px",
+                }}
+              >
+                {dateParts.map((p, i, arr) => (
+                  <span
+                    key={i}
+                    style={{
+                      color:
+                        i === arr.length - 1
+                          ? "var(--memorial-accent)"
+                          : "var(--memorial-fg)",
+                    }}
+                  >
+                    {p}
+                    {i < arr.length - 1 ? "." : ""}
+                  </span>
+                ))}
+              </h1>
 
-          {/* Title */}
-          <div
-            style={{
-              fontFamily: "var(--type)",
-              fontSize: 14,
-              letterSpacing: "0.12em",
-              textTransform: "uppercase",
-              color: "var(--memorial-fg)",
-              marginBottom: live.description ? 12 : 0,
-            }}
-          >
-            {live.title || live.venue}
-          </div>
+              {/* Title */}
+              <div
+                style={{
+                  fontFamily: "var(--type)",
+                  fontSize: 14,
+                  letterSpacing: "0.12em",
+                  textTransform: "uppercase",
+                  color: "var(--memorial-fg)",
+                  marginBottom: live.description ? 12 : 0,
+                }}
+              >
+                {live.title || live.venue}
+              </div>
 
-          {live.description && (
-            <p
+              {/* Weekday + venue */}
+              <div
+                style={{
+                  fontFamily: "var(--mono)",
+                  fontSize: 10,
+                  letterSpacing: "0.35em",
+                  textTransform: "uppercase",
+                  color: "var(--memorial-sub)",
+                  marginTop: 8,
+                }}
+              >
+                {weekday} · @ {live.venue}
+              </div>
+
+              {live.description && (
+                <p
+                  style={{
+                    fontFamily: "var(--jp)",
+                    fontSize: 13,
+                    lineHeight: 1.9,
+                    color: "var(--memorial-sub)",
+                    maxWidth: 480,
+                    margin: "12px 0 0",
+                  }}
+                >
+                  {live.description}
+                </p>
+              )}
+            </div>
+
+            {/* 赤スタンプ */}
+            <div
+              aria-hidden="true"
               style={{
-                fontFamily: "var(--jp)",
-                fontSize: 13,
-                lineHeight: 1.9,
-                color: "var(--memorial-sub)",
-                maxWidth: 480,
-                margin: 0,
+                width: 150,
+                height: 150,
+                borderRadius: "50%",
+                border: "3px double rgba(184,90,58,0.85)",
+                color: "rgba(184,90,58,0.85)",
+                display: "flex",
+                flexDirection: "column",
+                alignItems: "center",
+                justifyContent: "center",
+                transform: "rotate(-6deg)",
+                fontFamily: "var(--type)",
+                textTransform: "uppercase",
+                textAlign: "center",
+                flexShrink: 0,
               }}
             >
-              {live.description}
-            </p>
-          )}
+              <div style={{ fontSize: 11, letterSpacing: "0.2em" }}>filed</div>
+              <div
+                style={{
+                  fontFamily: "var(--serif)",
+                  fontStyle: "italic",
+                  fontWeight: 700,
+                  fontSize: 34,
+                  letterSpacing: "-0.02em",
+                  margin: "2px 0",
+                }}
+              >
+                {dateParts[1]}.{dateParts[2]}
+              </div>
+              <div style={{ fontSize: 11, letterSpacing: "0.2em" }}>
+                {yearStr}
+              </div>
+            </div>
+          </div>
 
           {/* Member filter */}
-          <div style={{ marginTop: 28 }}>
+          <div style={{ marginTop: 4 }}>
             <Suspense>
               <MemorialMemberFilter members={members} />
             </Suspense>

@@ -15,7 +15,6 @@ type Props = {
 export function LivesClient({ lives }: Props) {
   const groups = useMemo(() => {
     const map = new Map<string, LiveWithPhotoCount[]>();
-    // lives comes DB-descending — keep that order (newest year first)
     for (const l of lives) {
       if (!l.hasPhotos) continue;
       const y = l.date.slice(0, 4);
@@ -33,12 +32,90 @@ export function LivesClient({ lives }: Props) {
     return m;
   }, [groups]);
 
+  const totalCount = useMemo(
+    () => groups.reduce((s, [, ls]) => s + ls.length, 0),
+    [groups],
+  );
+
   const sectionNodeMap = useRef<Record<string, HTMLElement | null>>({});
 
   const activeYear = useActiveYear(sectionNodeMap, years[0] ?? ALL_YEARS[0]);
 
   return (
     <>
+      {/* ── Page Header ── */}
+      <div
+        className="px-4 sm:px-16"
+        style={{ paddingTop: 80, paddingBottom: 40 }}
+      >
+        <div
+          style={{
+            fontFamily: "var(--type)",
+            fontSize: 12,
+            letterSpacing: "0.5em",
+            textTransform: "uppercase",
+            color: "var(--memorial-accent)",
+            marginBottom: 12,
+          }}
+        >
+          archive · index
+        </div>
+        <h1
+          style={{
+            fontFamily: "var(--serif)",
+            fontStyle: "italic",
+            fontWeight: 300,
+            fontSize: "clamp(96px, 12vw, 200px)",
+            lineHeight: 0.9,
+            letterSpacing: "-0.035em",
+            margin: 0,
+          }}
+        >
+          Lives
+          <span style={{ color: "var(--memorial-accent)" }}>.</span>
+        </h1>
+        <div
+          style={{
+            marginTop: 18,
+            display: "flex",
+            alignItems: "baseline",
+            gap: 18,
+            flexWrap: "wrap",
+            fontFamily: "var(--mono)",
+            fontSize: 11,
+            letterSpacing: "0.3em",
+            textTransform: "uppercase",
+            color: "var(--memorial-sub)",
+          }}
+        >
+          <span style={{ color: "var(--memorial-fg)" }}>
+            <span
+              style={{
+                fontFamily: "var(--serif)",
+                fontStyle: "italic",
+                fontWeight: 700,
+                fontSize: 24,
+                color: "var(--memorial-accent)",
+                verticalAlign: "-2px",
+                marginRight: 4,
+              }}
+            >
+              {totalCount}
+            </span>
+            shows documented
+          </span>
+          <span style={{ opacity: 0.5 }}>·</span>
+          <span>2022.12.10 — 2026.04.27</span>
+          <span style={{ opacity: 0.5 }}>·</span>
+          <span
+            style={{ color: "var(--memorial-accent)" }}
+            className="mem-pulse-dot"
+          >
+            disbanded
+          </span>
+        </div>
+      </div>
+
       {/* Sticky year-tab bar */}
       <div
         className="sticky top-0 z-[5]"
@@ -102,6 +179,7 @@ export function LivesClient({ lives }: Props) {
               count={yearLives.length}
               chapterIdx={ALL_YEARS.indexOf(year)}
               active={activeYear === year}
+              polaroidUrl={yearLives[0]?.photoUrls[0]}
             />
 
             <ul
@@ -113,100 +191,158 @@ export function LivesClient({ lives }: Props) {
                 padding: "0 16px",
               }}
             >
-              {yearLives.map((live) => (
-                <li
+              {yearLives.map((live, i) => (
+                <LivesRow
                   key={live.id}
-                  style={{ borderBottom: "1px solid var(--memorial-faint)" }}
-                >
-                  <Link
-                    href={`/lives/${live.id}`}
-                    className="flex items-baseline gap-3 py-4 no-underline transition-opacity hover:opacity-60 sm:gap-6"
-                    style={{ color: "var(--memorial-fg)" }}
-                  >
-                    <span
-                      className="flex-shrink-0"
-                      style={{
-                        fontFamily: "var(--mono)",
-                        fontSize: 10,
-                        letterSpacing: "0.22em",
-                        textTransform: "uppercase",
-                        color: "var(--memorial-sub)",
-                        width: 32,
-                      }}
-                    >
-                      {live.weekday}
-                    </span>
-
-                    <span
-                      className="flex-shrink-0"
-                      style={{
-                        fontFamily: "var(--mono)",
-                        fontSize: 11,
-                        letterSpacing: "0.05em",
-                        color: "var(--memorial-sub)",
-                        width: 90,
-                      }}
-                    >
-                      {live.date}
-                    </span>
-
-                    <span
-                      className="flex-1"
-                      style={{
-                        fontFamily: "var(--serif)",
-                        fontStyle: "italic",
-                        fontWeight: 700,
-                        fontSize: "clamp(15px, 2vw, 20px)",
-                        letterSpacing: "-0.01em",
-                        color: "var(--memorial-fg)",
-                      }}
-                    >
-                      {live.title || live.venue}
-                    </span>
-
-                    <span
-                      className="hidden flex-shrink-0 sm:inline"
-                      style={{
-                        fontFamily: "var(--type)",
-                        fontSize: 11,
-                        letterSpacing: "0.14em",
-                        textTransform: "uppercase",
-                        color: "var(--memorial-sub)",
-                      }}
-                    >
-                      {live.venue}
-                    </span>
-
-                    <span
-                      className="flex-shrink-0"
-                      style={{
-                        fontFamily: "var(--mono)",
-                        fontSize: 10,
-                        letterSpacing: "0.22em",
-                        color: "var(--memorial-sub)",
-                        opacity: 0.55,
-                      }}
-                    >
-                      {live.photoCount}枚
-                    </span>
-
-                    <span
-                      className="flex-shrink-0"
-                      style={{
-                        fontFamily: "var(--mono)",
-                        fontSize: 13,
-                        color: "var(--memorial-accent)",
-                      }}
-                    >
-                      →
-                    </span>
-                  </Link>
-                </li>
+                  live={live}
+                  trackNo={i + 1}
+                  yearTotal={yearLives.length}
+                />
               ))}
             </ul>
+
+            <div
+              style={{
+                paddingTop: 16,
+                paddingBottom: 8,
+                textAlign: "center",
+                fontFamily: "var(--mono)",
+                fontSize: 10,
+                letterSpacing: "0.4em",
+                textTransform: "uppercase",
+                color: "var(--memorial-sub)",
+                opacity: 0.4,
+              }}
+            >
+              ── {year} ──
+            </div>
           </section>
         ))}
+
+        <div
+          style={{
+            marginTop: 24,
+            paddingTop: 24,
+            borderTop: "1px solid var(--memorial-rule)",
+            textAlign: "center",
+            fontFamily: "var(--mono)",
+            fontSize: 11,
+            letterSpacing: "0.5em",
+            textTransform: "uppercase",
+            color: "var(--memorial-accent)",
+          }}
+        >
+          ── end of index ──
+        </div>
       </div>
     </>
+  );
+}
+
+type RowProps = {
+  live: LiveWithPhotoCount;
+  trackNo: number;
+  yearTotal: number;
+};
+
+function LivesRow({ live, trackNo, yearTotal }: RowProps) {
+  return (
+    <li style={{ borderBottom: "1px dashed var(--memorial-faint)" }}>
+      <Link
+        href={`/lives/${live.id}`}
+        style={{
+          display: "grid",
+          gridTemplateColumns: "60px 50px 1fr auto 30px",
+          alignItems: "baseline",
+          gap: 18,
+          padding: "14px 4px",
+          textDecoration: "none",
+          color: "var(--memorial-fg)",
+          transition: "opacity .2s",
+        }}
+        className="hover:opacity-60"
+      >
+        {/* track # */}
+        <span
+          style={{
+            fontFamily: "var(--mono)",
+            fontSize: 10,
+            letterSpacing: "0.2em",
+            color: "var(--memorial-sub)",
+          }}
+        >
+          TR.{String(trackNo).padStart(2, "0")}/
+          {String(yearTotal).padStart(2, "0")}
+        </span>
+
+        {/* weekday */}
+        <span
+          style={{
+            fontFamily: "var(--mono)",
+            fontSize: 10,
+            letterSpacing: "0.25em",
+            textTransform: "uppercase",
+            color: "var(--memorial-sub)",
+          }}
+        >
+          {live.weekday}
+        </span>
+
+        {/* title + date (stacked on mobile, date italic serif on desktop) */}
+        <span>
+          <span
+            className="hidden sm:inline"
+            style={{
+              fontFamily: "var(--serif)",
+              fontStyle: "italic",
+              fontWeight: 400,
+              fontSize: 22,
+              letterSpacing: "-0.01em",
+              marginRight: 18,
+            }}
+          >
+            {live.date}
+          </span>
+          <span
+            style={{
+              fontFamily: "var(--serif)",
+              fontStyle: "italic",
+              fontWeight: 700,
+              fontSize: "clamp(15px, 2vw, 20px)",
+              letterSpacing: "-0.01em",
+              color: "var(--memorial-fg)",
+            }}
+          >
+            {live.title || live.venue}
+          </span>
+        </span>
+
+        {/* venue */}
+        <span
+          className="hidden sm:inline"
+          style={{
+            fontFamily: "var(--mono)",
+            fontSize: 11,
+            letterSpacing: "0.14em",
+            textTransform: "uppercase",
+            color: "var(--memorial-sub)",
+          }}
+        >
+          @ {live.venue}
+        </span>
+
+        {/* arrow */}
+        <span
+          style={{
+            fontFamily: "var(--mono)",
+            fontSize: 14,
+            color: "var(--memorial-accent)",
+            justifySelf: "end",
+          }}
+        >
+          →
+        </span>
+      </Link>
+    </li>
   );
 }
