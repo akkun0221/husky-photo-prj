@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback } from "react";
+import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { useInfiniteQuery } from "@tanstack/react-query";
 import { useIntersectionObserver } from "@/shared/hooks/useIntersectionObserver";
@@ -42,7 +43,6 @@ export function MemberPhotoFeed() {
     if (hasNextPage && !isFetchingNextPage) fetchNextPage();
   }, [hasNextPage, isFetchingNextPage, fetchNextPage]);
 
-  // スクロール末尾で fetchNextPage を呼び出す
   const sentinelRef = useIntersectionObserver(handleLoadMore, {
     threshold: 0.1,
   });
@@ -71,56 +71,106 @@ export function MemberPhotoFeed() {
 
   return (
     <div>
-      {groups.map(({ live, photos }) => (
+      {groups.map(({ live, photos }, index) => (
         <section
           key={live.id}
           style={{ borderBottom: "1px solid var(--memorial-faint)" }}
         >
-          {/* グループヘッダー */}
-          <div
+          {/* グループヘッダー — 3カラムgrid */}
+          <header
             className="px-4 py-5 sm:px-16"
-            style={{ borderBottom: "1px solid var(--memorial-faint)" }}
+            style={{
+              borderBottom: "1px solid var(--memorial-faint)",
+              display: "grid",
+              gridTemplateColumns: "auto 1fr auto",
+              alignItems: "baseline",
+              gap: 24,
+            }}
           >
+            {/* entry番号 + weekday */}
             <div
               style={{
                 fontFamily: "var(--mono)",
                 fontSize: 10,
-                letterSpacing: "0.35em",
+                letterSpacing: "0.32em",
                 textTransform: "uppercase",
                 color: "var(--memorial-sub)",
-                marginBottom: 6,
+                flexShrink: 0,
               }}
             >
-              {calcWeekday(live.date)} · {live.date}
+              entry №{String(index + 1).padStart(3, "0")} ·{" "}
+              {calcWeekday(live.date)}
             </div>
-            <h2
+
+            {/* 日付 + タイトル + 会場 */}
+            <div
               style={{
-                fontFamily: "var(--serif)",
-                fontStyle: "italic",
-                fontWeight: 700,
-                fontSize: "clamp(18px, 2.5vw, 26px)",
-                lineHeight: 1.05,
-                letterSpacing: "-0.01em",
-                color: "var(--memorial-fg)",
-                margin: "0 0 4px",
+                display: "flex",
+                alignItems: "baseline",
+                gap: 22,
+                flexWrap: "wrap",
               }}
             >
-              {live.title || live.venue}
-            </h2>
-            {live.title && (
-              <div
+              <span
                 style={{
-                  fontFamily: "var(--type)",
-                  fontSize: 10,
-                  letterSpacing: "0.18em",
-                  textTransform: "uppercase",
-                  color: "var(--memorial-sub)",
+                  fontFamily: "var(--serif)",
+                  fontStyle: "italic",
+                  fontWeight: 400,
+                  fontSize: "clamp(20px, 3vw, 38px)",
+                  lineHeight: 0.95,
+                  letterSpacing: "-0.025em",
+                  color: "var(--memorial-fg)",
                 }}
               >
-                {live.venue}
-              </div>
-            )}
-          </div>
+                {live.date}
+              </span>
+              <span
+                style={{
+                  fontFamily: "var(--serif)",
+                  fontStyle: "italic",
+                  fontWeight: 700,
+                  fontSize: "clamp(15px, 2vw, 20px)",
+                  lineHeight: 1.2,
+                  color: "var(--memorial-fg)",
+                }}
+              >
+                {live.title || live.venue}
+              </span>
+              {live.title && (
+                <span
+                  className="hidden sm:inline"
+                  style={{
+                    fontFamily: "var(--mono)",
+                    fontSize: 11,
+                    letterSpacing: "0.18em",
+                    textTransform: "uppercase",
+                    color: "var(--memorial-sub)",
+                  }}
+                >
+                  @ {live.venue}
+                </span>
+              )}
+            </div>
+
+            {/* all photos → */}
+            <Link
+              href={`/lives/${live.id}`}
+              style={{
+                textDecoration: "none",
+                fontFamily: "var(--mono)",
+                fontSize: 10,
+                letterSpacing: "0.3em",
+                textTransform: "uppercase",
+                color: "var(--memorial-accent)",
+                flexShrink: 0,
+                display: "inline-flex",
+                alignItems: "center",
+                gap: 8,
+              }}
+            >
+              all photos →
+            </Link>
+          </header>
 
           <PhotoListProvider photos={photos} hasMore={false}>
             <PhotoGrid />
