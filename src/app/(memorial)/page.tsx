@@ -1,41 +1,47 @@
 export const revalidate = false;
 
 import { Suspense } from "react";
-import { getLivesWithPhotoCount } from "@/entities/live/api";
+import {
+  getLivesFeedYear,
+  getLiveYearCounts,
+  getLiveMarqueeItems,
+  getTotalPhotoCount,
+} from "@/entities/live/api";
 import { getMembersWithPhotoCount } from "@/entities/member/api";
 import { MemorialHeader } from "@/widgets/MemorialHeader/MemorialHeader";
-import { OpeningMonument } from "@/widgets/OpeningMonument/OpeningMonument";
 import { MemorialClient } from "@/widgets/MemorialClient/MemorialClient";
-import { MembersRail } from "@/widgets/MembersRail/MembersRail";
 import { MemorialFooter } from "@/widgets/MemorialFooter/MemorialFooter";
-import { PhotoSlideshow } from "@/widgets/PhotoSlideshow/PhotoSlideshow";
 
 export default async function HomePage() {
-  const [lives, members] = await Promise.all([
-    getLivesWithPhotoCount(),
-    getMembersWithPhotoCount(),
-  ]);
+  // yearCounts を先に取得して最新年を特定してから残りを並列フェッチ
+  const yearCounts = await getLiveYearCounts();
+  const mostRecentYear = Object.keys(yearCounts)
+    .filter((y) => (yearCounts[y] ?? 0) > 0)
+    .sort()
+    .reverse()[0];
 
-  const totalPhotos = lives.reduce((sum, l) => sum + l.photoCount, 0);
-  const livesWithPhotosCount = lives.filter((l) => l.photoCount > 0).length;
-  const slideshowPhotos = [...lives]
-    .reverse()
-    .filter((l) => l.thumbnailUrl)
-    .map((l) => ({ url: l.thumbnailUrl!, label: `${l.date} · ${l.venue}` }));
+  const [initialYearData, marqueeItems, members, totalPhotos] =
+    await Promise.all([
+      mostRecentYear
+        ? getLivesFeedYear(mostRecentYear, "reverse")
+        : Promise.resolve({ lives: [], year: "" }),
+      getLiveMarqueeItems(),
+      getMembersWithPhotoCount(),
+      getTotalPhotoCount(),
+    ]);
 
   return (
     <div style={{ position: "relative" }}>
       <MemorialHeader />
-      <OpeningMonument
-        showCount={livesWithPhotosCount}
-        photoCount={totalPhotos}
-        voiceCount={members.length}
-      />
-      <PhotoSlideshow photos={slideshowPhotos} />
       <Suspense>
-        <MemorialClient lives={lives} members={members} />
+        <MemorialClient
+          initialYearData={initialYearData}
+          yearCounts={yearCounts}
+          marqueeItems={marqueeItems}
+          members={members}
+          totalPhotos={totalPhotos}
+        />
       </Suspense>
-      <MembersRail members={members} />
       <MemorialFooter />
     </div>
   );

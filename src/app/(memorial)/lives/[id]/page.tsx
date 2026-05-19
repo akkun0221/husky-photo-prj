@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { Suspense } from "react";
+import Link from "next/link";
 import { getLiveById } from "@/entities/live/api";
 import { getMembers } from "@/entities/member/api";
 import { createAdminClient } from "@/shared/lib/supabase/admin";
@@ -23,17 +24,16 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { id } = await params;
   const live = await getLiveById(id);
   return {
-    title: live.title,
-    description: `${live.date} ${live.venue}`,
+    title: live.title || live.venue,
+    description: `${live.date} · ${live.venue}`,
     openGraph: {
-      title: live.title,
-      description: `${live.date} ${live.venue}`,
+      title: live.title || live.venue,
+      description: `${live.date} · ${live.venue}`,
       type: "article",
     },
   };
 }
 
-// generateStaticParams はビルド時実行のため cookies() を使わない adminClient を直接使う
 export async function generateStaticParams() {
   const supabase = createAdminClient();
   const { data } = await supabase
@@ -53,64 +53,116 @@ export default async function LiveDetailPage({ params }: Props) {
     <div>
       <MemorialHeader />
       <main className="pb-24">
-        {/* ヒーローヘッダー */}
+        {/* ── ヘッダー ── */}
         <div
-          className="px-4 pt-20 pb-10 sm:px-16"
+          className="px-4 pt-14 pb-10 sm:px-16"
           style={{ borderBottom: "1px solid var(--memorial-rule)" }}
         >
+          {/* Back link */}
+          <Link
+            href="/lives"
+            style={{
+              display: "inline-flex",
+              alignItems: "center",
+              gap: 6,
+              fontFamily: "var(--mono)",
+              fontSize: 10,
+              letterSpacing: "0.35em",
+              textTransform: "uppercase",
+              color: "var(--memorial-sub)",
+              textDecoration: "none",
+              marginBottom: 28,
+            }}
+          >
+            ← lives
+          </Link>
+
+          {/* Weekday + venue */}
           <div
-            className="mb-3 font-mono text-[10px] tracking-[0.4em] uppercase"
-            style={{ color: "var(--memorial-accent)" }}
+            style={{
+              fontFamily: "var(--mono)",
+              fontSize: 10,
+              letterSpacing: "0.35em",
+              textTransform: "uppercase",
+              color: "var(--memorial-sub)",
+              marginBottom: 10,
+            }}
           >
             {weekday} · {live.venue}
           </div>
+
+          {/* Date — giant serif italic */}
           <h1
             style={{
-              fontFamily: "var(--font-playfair), 'Noto Serif JP', serif",
-              fontWeight: 300,
+              fontFamily: "var(--serif)",
               fontStyle: "italic",
-              fontSize: "clamp(36px, 6vw, 72px)",
-              lineHeight: 1,
-              letterSpacing: "-0.02em",
+              fontWeight: 700,
+              fontSize: "clamp(40px, 7vw, 80px)",
+              lineHeight: 0.95,
+              letterSpacing: "-0.03em",
+              color: "var(--memorial-fg)",
+              margin: "0 0 14px",
             }}
           >
             {live.date}
           </h1>
-          <p className="mt-3 text-base font-medium sm:text-xl">
+
+          {/* Title */}
+          <div
+            style={{
+              fontFamily: "var(--type)",
+              fontSize: 14,
+              letterSpacing: "0.12em",
+              textTransform: "uppercase",
+              color: "var(--memorial-fg)",
+              marginBottom: live.description ? 12 : 0,
+            }}
+          >
             {live.title || live.venue}
-          </p>
+          </div>
+
           {live.description && (
             <p
-              className="mt-2 max-w-xl font-mono text-[12px] leading-relaxed"
-              style={{ color: "var(--memorial-sub)" }}
+              style={{
+                fontFamily: "var(--jp)",
+                fontSize: 13,
+                lineHeight: 1.9,
+                color: "var(--memorial-sub)",
+                maxWidth: 480,
+                margin: 0,
+              }}
             >
               {live.description}
             </p>
           )}
 
-          {/* メンバーフィルター */}
-          <div className="mt-8">
+          {/* Member filter */}
+          <div style={{ marginTop: 28 }}>
             <Suspense>
               <MemorialMemberFilter members={members} />
             </Suspense>
           </div>
         </div>
 
-        {/* フォトグリッド */}
-        <div className="mt-2">
-          <Suspense
-            fallback={
-              <p
-                className="py-16 text-center font-mono text-[11px] tracking-[0.3em] uppercase"
-                style={{ color: "var(--memorial-sub)" }}
-              >
-                loading...
-              </p>
-            }
-          >
-            <LiveDetailPhotoFeed liveId={id} />
-          </Suspense>
-        </div>
+        {/* ── Photo grid ── */}
+        <Suspense
+          fallback={
+            <div
+              className="py-16 text-center"
+              style={{
+                fontFamily: "var(--mono)",
+                fontSize: 10,
+                letterSpacing: "0.3em",
+                textTransform: "uppercase",
+                color: "var(--memorial-sub)",
+              }}
+            >
+              loading...
+            </div>
+          }
+        >
+          <LiveDetailPhotoFeed liveId={id} />
+        </Suspense>
       </main>
       <MemorialFooter />
     </div>
