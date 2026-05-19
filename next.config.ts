@@ -23,7 +23,7 @@ const nextConfig: NextConfig = {
               "img-src 'self' data: blob: https://pub-5d0311da2e0a4829b4043cf798f33881.r2.dev",
               "font-src 'self'",
               "connect-src 'self' https://*.supabase.co wss://*.supabase.co",
-              "frame-src https://www.youtube.com",
+              "media-src 'self' https://pub-5d0311da2e0a4829b4043cf798f33881.r2.dev",
               "worker-src blob:",
               "object-src 'none'",
               "base-uri 'self'",

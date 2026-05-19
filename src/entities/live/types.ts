@@ -7,6 +7,13 @@ export type Live = {
   thumbnail_photo_id: string | null;
 };
 
+export type LiveSummary = {
+  id: string;
+  title: string;
+  date: string;
+  venue: string;
+};
+
 export type LiveWithPhotoFlag = Live & { hasPhotos: boolean };
 
 export type LiveWithPhotoCount = Live & {

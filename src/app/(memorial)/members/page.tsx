@@ -17,53 +17,63 @@ export default async function MembersPage() {
   const members = await getMembers();
 
   return (
-    <div style={{ minHeight: "100dvh", color: "var(--memorial-fg)" }}>
+    <div>
       <MemorialHeader />
-      <main className="px-4 pt-20 pb-24 sm:px-16">
-        {/* タイトル */}
-        <div className="mb-8 pt-4">
+      <main className="pb-24">
+        {/* ── ヘッダー ── */}
+        <div
+          className="px-4 pt-14 pb-8 sm:px-16"
+          style={{ borderBottom: "1px solid var(--memorial-rule)" }}
+        >
           <div
-            className="mb-3 font-mono text-[10px] tracking-[0.5em] uppercase"
-            style={{ color: "var(--memorial-accent)" }}
+            style={{
+              fontFamily: "var(--mono)",
+              fontSize: 10,
+              letterSpacing: "0.45em",
+              textTransform: "uppercase",
+              color: "var(--memorial-sub)",
+              marginBottom: 12,
+            }}
           >
             gallery
           </div>
+
           <h1
             style={{
-              fontFamily: "var(--font-playfair), 'Noto Serif JP', serif",
-              fontWeight: 300,
+              fontFamily: "var(--serif)",
               fontStyle: "italic",
+              fontWeight: 700,
               fontSize: "clamp(40px, 8vw, 80px)",
-              lineHeight: 1,
-              letterSpacing: "-0.02em",
+              lineHeight: 0.92,
+              letterSpacing: "-0.03em",
+              color: "var(--memorial-fg)",
+              margin: "0 0 28px",
             }}
           >
             Members
           </h1>
-        </div>
 
-        {/* フィルター */}
-        <div
-          className="mb-10"
-          style={{
-            borderBottom: "1px solid var(--memorial-rule)",
-            paddingBottom: 16,
-          }}
-        >
+          {/* Member filter */}
           <Suspense>
             <MemorialMemberFilter members={members} />
           </Suspense>
         </div>
 
-        {/* フォトフィード */}
+        {/* ── Photo feed ── */}
         <Suspense
           fallback={
-            <p
-              className="py-16 text-center font-mono text-[11px] tracking-[0.3em] uppercase"
-              style={{ color: "var(--memorial-sub)" }}
+            <div
+              className="py-16 text-center"
+              style={{
+                fontFamily: "var(--mono)",
+                fontSize: 10,
+                letterSpacing: "0.3em",
+                textTransform: "uppercase",
+                color: "var(--memorial-sub)",
+              }}
             >
               loading...
-            </p>
+            </div>
           }
         >
           <MemberPhotoFeed />

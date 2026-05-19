@@ -48,9 +48,9 @@ export function MemorialMemberFilter({ members }: Props) {
               : "var(--memorial-rule)",
           background:
             current === ALL_VALUE ? "var(--memorial-accent)" : "transparent",
-          color: current === ALL_VALUE ? "#fff" : "var(--memorial-fg)",
+          color: current === ALL_VALUE ? "#1a120a" : "var(--memorial-fg)",
           cursor: "pointer",
-          fontFamily: "inherit",
+          fontFamily: "var(--type)",
           touchAction: "manipulation",
         }}
       >
@@ -74,7 +74,7 @@ export function MemorialMemberFilter({ members }: Props) {
             color:
               current === m.id ? "var(--memorial-fg)" : "var(--memorial-sub)",
             cursor: "pointer",
-            fontFamily: "inherit",
+            fontFamily: "var(--type)",
             touchAction: "manipulation",
           }}
         >

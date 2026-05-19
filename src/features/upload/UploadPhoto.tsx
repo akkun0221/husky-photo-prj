@@ -18,7 +18,7 @@ import {
 } from "@/shared/ui/dialog";
 import type { Live } from "@/entities/live/types";
 import type { Member } from "@/entities/member/types";
-import { processImage } from "./compressImage";
+import { processImage, createPreviewThumbnail } from "./compressImage";
 import { createPhotoAction } from "./actions";
 
 type UploadFile = {
@@ -60,12 +60,17 @@ const FileItem = memo(function FileItem({
           f.status === "pending" && !f.memberId ? "ring-2 ring-red-400" : ""
         }`}
       >
-        {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img
-          src={f.preview}
-          alt={f.file.name}
-          className="h-full w-full object-cover"
-        />
+        {f.preview ? (
+          // eslint-disable-next-line @next/next/no-img-element
+          <img
+            src={f.preview}
+            alt={f.file.name}
+            className="h-full w-full object-cover"
+            loading="lazy"
+          />
+        ) : (
+          <div className="bg-muted-foreground/20 h-full w-full animate-pulse" />
+        )}
         {f.status === "uploading" && (
           <div className="absolute inset-0 flex items-center justify-center bg-black/40">
             <span className="text-xs text-white">処理中...</span>
@@ -148,17 +153,34 @@ export function UploadPhoto({ lives, members }: Props) {
 
   const selectedLive = lives.find((l) => l.id === liveId);
 
-  const addFiles = useCallback((newFiles: File[]) => {
+  const addFiles = useCallback(async (newFiles: File[]) => {
     const imageFiles = newFiles.filter((f) => f.type.startsWith("image/"));
     const uploadFiles: UploadFile[] = imageFiles.map((f) => ({
       id: `${Date.now()}-${Math.random().toString(36).slice(2)}`,
       file: f,
-      preview: URL.createObjectURL(f),
+      preview: "",
       memberId: "",
       status: "pending",
       checked: false,
     }));
     setFiles((prev) => [...prev, ...uploadFiles]);
+
+    const BATCH = 10;
+    for (let i = 0; i < uploadFiles.length; i += BATCH) {
+      const batch = uploadFiles.slice(i, i + BATCH);
+      const results = await Promise.all(
+        batch.map(async (uf) => ({
+          id: uf.id,
+          preview: await createPreviewThumbnail(uf.file),
+        })),
+      );
+      setFiles((prev) =>
+        prev.map((f) => {
+          const result = results.find((r) => r.id === f.id);
+          return result ? { ...f, preview: result.preview } : f;
+        }),
+      );
+    }
   }, []);
 
   const handleDrop = (e: React.DragEvent) => {
