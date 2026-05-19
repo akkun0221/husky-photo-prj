@@ -1,19 +1,21 @@
 "use client";
 
+import { useEffect, useRef } from "react";
 import { usePathname } from "next/navigation";
 
 const VIDEO_URL =
   "https://pub-5d0311da2e0a4829b4043cf798f33881.r2.dev/videos/memorial-bg.mp4";
 
-function getVideoStyle(pathname: string): { opacity: number; blur: string } {
-  if (pathname === "/") return { opacity: 0.2, blur: "10px" };
-  if (pathname === "/lives") return { opacity: 0.15, blur: "8px" };
-  return { opacity: 0, blur: "10px" };
-}
+const VISIBLE_PATHS = ["/", "/lives"];
 
 export function YouTubeBackground() {
   const pathname = usePathname();
-  const videoStyle = getVideoStyle(pathname);
+  const videoRef = useRef<HTMLVideoElement>(null);
+  const isVisible = VISIBLE_PATHS.includes(pathname);
+
+  useEffect(() => {
+    videoRef.current?.play().catch(() => {});
+  }, []);
 
   return (
     <div
@@ -22,6 +24,7 @@ export function YouTubeBackground() {
       aria-hidden="true"
     >
       <video
+        ref={videoRef}
         src={VIDEO_URL}
         autoPlay
         muted
@@ -36,8 +39,8 @@ export function YouTubeBackground() {
           minWidth: "100%",
           minHeight: "100%",
           transform: "translate(-50%, -50%) scale(1.1)",
-          filter: `blur(${videoStyle.blur})`,
-          opacity: videoStyle.opacity,
+          filter: "blur(10px)",
+          opacity: isVisible ? 0.2 : 0,
           objectFit: "cover",
           transition: "opacity 0.8s ease",
         }}
